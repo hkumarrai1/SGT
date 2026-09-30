@@ -21,6 +21,8 @@ function CollegeId() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [studentId, setStudentId] = useState("");
+
   useEffect(() => {
     if (!isAuthenticated) {
       window.location.assign("/auth?mode=signup");
@@ -42,6 +44,9 @@ function CollegeId() {
           data.onboarding.collegeIdStatus || "NOT_UPLOADED",
         );
         setRejectionReason(data.onboarding?.collegeIdRejectionReason || "");
+        if (data.onboarding?.profile?.studentId) {
+          setStudentId(data.onboarding.profile.studentId);
+        }
         if (!data.onboarding?.institutionSelected) {
           window.location.assign("/onboarding/college");
           return;
@@ -99,11 +104,18 @@ function CollegeId() {
         type: "error",
         message: "Select your College ID card first.",
       });
+    if (!studentId.trim())
+      return setStatus({
+        type: "error",
+        message: "Please enter your official University Enrollment / Student Roll Number.",
+      });
+
     setIsSaving(true);
     setStatus({ type: "", message: "" });
     try {
       const body = new FormData();
       body.append("document", selectedFile);
+      body.append("studentId", studentId.trim());
       const response = await fetch(`${API_URL}/api/verification/college-id`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -149,8 +161,8 @@ function CollegeId() {
             <em>community trusted.</em>
           </h2>
           <p>
-            Your College ID is collected privately for SGT verification and
-            manual review. It will not be shown as part of your public profile.
+            Your College ID and official enrollment number are collected privately for SGT verification and
+            manual review. They will not be shown on your public profile.
           </p>
           <span className="auth-story-note">
             <i /> PRIVATE · REVIEWED BY SGT
@@ -158,17 +170,16 @@ function CollegeId() {
         </div>
         <section className="auth-card college-id-card">
           <div className="auth-card-topline">
-            <span>COLLEGE ID CARD</span>
+            <span>COLLEGE ID VERIFICATION</span>
             <i />
           </div>
           <h1>
             Verify your
             <br />
-            <em>campus.</em>
+            <em>campus identity.</em>
           </h1>
           <p className="auth-intro">
-            {institution?.name || "Your selected institution"} · A valid College
-            ID is mandatory for SGT verification.
+            {institution?.name || "Your selected institution"} · Enter your enrollment number and upload your ID card for verification.
           </p>
           {isLoading ? (
             <div className="college-id-loading">
@@ -184,6 +195,38 @@ function CollegeId() {
                     : ". Please upload a new image."}
                 </p>
               )}
+
+              {/* Manual Enrollment ID Input */}
+              <div style={{ display: "grid", gap: "0.4rem", marginBottom: "0.8rem", textAlign: "left" }}>
+                <label
+                  htmlFor="enrollment-id-input"
+                  style={{ fontSize: "0.82rem", fontWeight: 700, color: "#fff8f2" }}
+                >
+                  University Enrollment / Student Roll No. <span style={{ color: "#f4c66c" }}>*</span>
+                </label>
+                <input
+                  id="enrollment-id-input"
+                  type="text"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  placeholder="e.g. 2024CS1045 or 0827CS211045"
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "0.85rem 1rem",
+                    borderRadius: "8px",
+                    background: "rgba(255, 248, 242, 0.08)",
+                    border: "1px solid rgba(255, 248, 242, 0.25)",
+                    color: "#fff8f2",
+                    fontSize: "0.95rem",
+                    outline: "none",
+                  }}
+                />
+                <small style={{ color: "rgba(255, 248, 242, 0.55)", fontSize: "0.72rem" }}>
+                  Matches the student ID on your college card for instant admin approval.
+                </small>
+              </div>
+
               <div className="college-id-preview-wrap">
                 {preview ? (
                   <img
@@ -209,7 +252,7 @@ function CollegeId() {
                 type="button"
                 onClick={() => inputRef.current?.click()}
               >
-                Choose College ID image
+                {selectedFile ? "Replace ID card image" : "Choose College ID image"}
               </button>
               <p className="college-id-requirements">
                 JPG, JPEG, or PNG · Maximum 10 MB · Clear and readable image
@@ -217,7 +260,7 @@ function CollegeId() {
               <button
                 className="auth-submit"
                 type="submit"
-                disabled={!selectedFile || isSaving}
+                disabled={!selectedFile || !studentId.trim() || isSaving}
               >
                 {isSaving ? <Loader label="Submitting" /> : "Submit for review"}
                 <span>→</span>

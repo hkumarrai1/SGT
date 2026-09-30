@@ -396,15 +396,19 @@ function Dashboard() {
         </a>
 
         <nav className="dashboard-nav-links" aria-label="Dashboard navigation">
-          <a href="/">Home</a>
-          <a href="#my-vibe">My Vibe</a>
-          <a href="#about-you">About You</a>
-          <a href="/chat" className="dashboard-nav-chat-link">
+          <a href="/dashboard" style={{ color: "#f4c66c", fontWeight: 700 }}>
+            Dashboard
+          </a>
+          <a href="/match">
+            ⚡ Match Engine
+          </a>
+          <a href="/chats" className="dashboard-nav-chat-link">
             <span>💬 Chats</span>
             {totalUnreadCount > 0 && (
               <span className="dashboard-nav-unread-badge">{totalUnreadCount}</span>
             )}
           </a>
+          <a href="#my-vibe">My Vibe</a>
           <a href="/payment" style={{ color: "#f4c66c" }}>
             {paymentStatus === "PAID" ? "My Plan" : "Dandiya Plan"}
           </a>
@@ -481,6 +485,20 @@ function Dashboard() {
               <span className="dashboard-meta-chip">
                 ✨ Verified Profile
               </span>
+              {profile?.anonymousAlias && (
+                <span
+                  className="dashboard-meta-chip"
+                  style={{
+                    borderColor: "rgba(192, 38, 211, 0.4)",
+                    color: "#f0abfc",
+                    background: "rgba(192, 38, 211, 0.12)",
+                    fontWeight: 700,
+                  }}
+                  title="Your unique anonymous campus alias"
+                >
+                  🎭 Alias: {profile.anonymousAlias}
+                </span>
+              )}
               {paymentStatus === "PAID" ? (
                 <span
                   className="dashboard-meta-chip"

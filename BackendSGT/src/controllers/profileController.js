@@ -94,7 +94,8 @@ export async function uploadProfilePhoto(req, res) {
 }
 
 export async function uploadCollegeId(req, res) {
-  const verification = await saveCollegeId(req.user._id, req.file);
+  const studentId = req.body?.studentId || req.body?.enrollmentNo;
+  const verification = await saveCollegeId(req.user._id, req.file, studentId);
   return res.json({
     success: true,
     message: "College ID submitted for review.",

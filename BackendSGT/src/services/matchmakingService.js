@@ -57,18 +57,13 @@ export async function serializeAnonymousMatch(matchDoc, currentUserId) {
 
   if (!partnerProfile) return null;
 
-  const fullName = partnerProfile.fullName || "Student";
-  const firstName = fullName.trim().split(" ")[0] || "Match";
-  const initials = fullName
-    .split(" ")
-    .map((w) => w[0])
-    .filter(Boolean)
-    .join("")
-    .slice(0, 2);
-
   const isRevealed = Boolean(matchDoc.isRevealed);
   const myRevealed = isUser1 ? Boolean(matchDoc.user1Revealed) : Boolean(matchDoc.user2Revealed);
   const partnerRevealed = isUser1 ? Boolean(matchDoc.user2Revealed) : Boolean(matchDoc.user1Revealed);
+
+  const partnerAlias = partnerProfile.anonymousAlias || "Dandiya_Match";
+  const fullName = partnerProfile.fullName || "Student";
+  const initials = partnerAlias.slice(0, 2).toUpperCase();
 
   return {
     matchId: matchDoc._id,
@@ -82,8 +77,9 @@ export async function serializeAnonymousMatch(matchDoc, currentUserId) {
     revealedAt: matchDoc.revealedAt,
     partner: {
       id: partnerId,
-      firstName,
-      initials,
+      alias: partnerAlias,
+      firstName: isRevealed ? (fullName.split(" ")[0] || "Match") : partnerAlias,
+      initials: isRevealed ? (fullName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "SGT") : initials,
       fullName: isRevealed ? fullName : undefined,
       profilePhoto: isRevealed ? partnerProfile.profilePhoto?.secureUrl || partnerProfile.profilePhoto?.url : undefined,
       gender: partnerProfile.gender,

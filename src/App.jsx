@@ -16,6 +16,8 @@ import AdminVerificationDetail from "./pages/AdminVerificationDetail";
 import ProfilePhoto from "./pages/ProfilePhoto";
 import Payment from "./pages/Payment";
 import Chat from "./pages/Chat";
+import Chats from "./pages/Chats";
+import MatchEngine from "./pages/MatchEngine";
 import { AuthProvider } from "./store";
 import "./App.css";
 
@@ -47,6 +49,10 @@ function App() {
         <Questionnaire />
       ) : path === "/dashboard" ? (
         <Dashboard />
+      ) : path === "/match" ? (
+        <MatchEngine />
+      ) : path === "/chats" ? (
+        <Chats />
       ) : path === "/chat" || path.startsWith("/chat/") ? (
         <Chat />
       ) : path === "/payment" || path === "/plans" ? (

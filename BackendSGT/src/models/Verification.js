@@ -30,6 +30,7 @@ const verificationSchema = new mongoose.Schema(
       enum: ["NOT_UPLOADED", "PENDING", "VERIFIED", "REJECTED"],
       default: "NOT_UPLOADED",
     },
+    studentId: { type: String, trim: true, maxlength: 60 },
     rejectionReason: { type: String, trim: true, maxlength: 500 },
     reviewedAt: { type: Date },
     reviewerId: { type: String, trim: true },

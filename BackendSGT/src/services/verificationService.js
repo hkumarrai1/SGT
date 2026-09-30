@@ -65,7 +65,7 @@ export async function getCollegeIdStatus(userId) {
     .lean();
 }
 
-export async function saveCollegeId(userId, file) {
+export async function saveCollegeId(userId, file, studentId = null) {
   const metadata = await inspectCollegeId(file);
   const profile = await Profile.findOne({ userId });
   if (!profile?.institutionId)
@@ -91,10 +91,12 @@ export async function saveCollegeId(userId, file) {
   if (previous?.verificationStatus === "VERIFIED")
     throw invalid("A verified College ID cannot be replaced.");
 
+  const cleanStudentId = typeof studentId === "string" ? studentId.trim() : (profile.studentId || "");
   const uploaded = await uploadPrivateDocument(file.buffer);
   const nextMetadata = {
     userId,
     institutionId: institution._id,
+    studentId: cleanStudentId,
     cloudinaryPublicId: uploaded.public_id,
     cloudinaryAssetId: uploaded.asset_id,
     resourceType: "image",
@@ -123,6 +125,9 @@ export async function saveCollegeId(userId, file) {
       },
     );
     profile.onboardingStatus = "COLLEGE_ID_SUBMITTED";
+    if (cleanStudentId) {
+      profile.studentId = cleanStudentId;
+    }
     await profile.save();
   } catch (error) {
     try {

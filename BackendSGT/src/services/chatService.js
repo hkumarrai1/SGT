@@ -47,9 +47,10 @@ export async function getConversation(userId, matchId) {
     { $set: { isRead: true } },
   );
 
-  const [messages, partnerProfile, partnerQuest] = await Promise.all([
+  const [messages, partnerProfile, myProfile, partnerQuest] = await Promise.all([
     Message.find({ matchId }).sort({ createdAt: 1 }).lean(),
     Profile.findOne({ userId: partnerId }).populate("institutionId", "name shortName city").lean(),
+    Profile.findOne({ userId }).select("revealedWithUserId").lean(),
     QuestionnaireResponse.findOne({ userId: partnerId }).select("tags").lean(),
   ]);
 
@@ -57,14 +58,13 @@ export async function getConversation(userId, matchId) {
   const myRevealed = isUser1 ? Boolean(match.user1Revealed) : Boolean(match.user2Revealed);
   const partnerRevealed = isUser1 ? Boolean(match.user2Revealed) : Boolean(match.user1Revealed);
 
+  const partnerAlias = partnerProfile?.anonymousAlias || "Dandiya_Match";
   const partnerFullName = partnerProfile?.fullName || "Student";
-  const partnerFirstName = partnerFullName.trim().split(" ")[0] || "Match";
-  const partnerInitials = partnerFullName
-    .split(" ")
-    .map((w) => w[0])
-    .filter(Boolean)
-    .join("")
-    .slice(0, 2);
+  const partnerInitials = partnerAlias.slice(0, 2).toUpperCase();
+
+  const myAlreadyRevealedOther =
+    Boolean(myProfile?.revealedWithUserId) &&
+    myProfile.revealedWithUserId.toString() !== partnerId.toString();
 
   return {
     matchId: match._id,
@@ -73,14 +73,16 @@ export async function getConversation(userId, matchId) {
     isRevealed,
     myRevealed,
     partnerRevealed,
+    myAlreadyRevealedOther,
     revealedAt: match.revealedAt,
     partner: {
       id: partnerId,
-      firstName: partnerFirstName,
-      initials: partnerInitials,
+      alias: partnerAlias,
+      firstName: isRevealed ? (partnerFullName.split(" ")[0] || "Match") : partnerAlias,
+      initials: isRevealed ? (partnerFullName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "SGT") : partnerInitials,
       fullName: isRevealed ? partnerFullName : undefined,
       profilePhoto: isRevealed ? partnerProfile?.profilePhoto?.secureUrl || partnerProfile?.profilePhoto?.url : undefined,
-      college: partnerProfile?.institutionId?.name || partnerProfile?.institutionId?.shortName || "Campus",
+      college: partnerProfile?.institutionId?.shortName || partnerProfile?.institutionId?.name || "Campus",
       course: partnerProfile?.course,
       academicYear: partnerProfile?.academicYear,
       gender: partnerProfile?.gender,
@@ -133,10 +135,34 @@ export async function sendMessage(userId, matchId, text) {
 }
 
 /**
- * Request or confirm mutual profile reveal.
+ * Request or confirm mutual profile reveal with STRICT 1-Reveal Limit.
  */
 export async function requestProfileReveal(userId, matchId) {
   const { match, isUser1, partnerId } = await getVerifiedMatch(userId, matchId);
+
+  // Check Single Reveal Guard for requesting user
+  const myProfile = await Profile.findOne({ userId });
+  if (
+    myProfile?.revealedWithUserId &&
+    myProfile.revealedWithUserId.toString() !== partnerId.toString()
+  ) {
+    throw invalid(
+      "You have already unlocked your 1 Dandiya partner reveal for this event.",
+      400,
+    );
+  }
+
+  // Check Single Reveal Guard for partner
+  const partnerProfile = await Profile.findOne({ userId: partnerId });
+  if (
+    partnerProfile?.revealedWithUserId &&
+    partnerProfile.revealedWithUserId.toString() !== userId.toString()
+  ) {
+    throw invalid(
+      "Your partner has already unlocked their 1 reveal with another match.",
+      400,
+    );
+  }
 
   if (isUser1) {
     match.user1Revealed = true;
@@ -148,6 +174,16 @@ export async function requestProfileReveal(userId, matchId) {
   if (match.user1Revealed && match.user2Revealed) {
     match.isRevealed = true;
     match.revealedAt = new Date();
+
+    // Lock both profiles to each other as their single revealed connection
+    await Profile.updateOne(
+      { userId },
+      { $set: { revealedWithUserId: partnerId } },
+    );
+    await Profile.updateOne(
+      { userId: partnerId },
+      { $set: { revealedWithUserId: userId } },
+    );
   }
 
   await match.save();
@@ -212,14 +248,9 @@ export async function getAllConversations(userId) {
       totalUnreadCount += unreadCount;
 
       const isRevealed = Boolean(m.isRevealed);
+      const partnerAlias = partnerProfile?.anonymousAlias || "Dandiya_Match";
       const partnerFullName = partnerProfile?.fullName || "Student";
-      const partnerFirstName = partnerFullName.trim().split(" ")[0] || "Match";
-      const partnerInitials = partnerFullName
-        .split(" ")
-        .map((w) => w[0])
-        .filter(Boolean)
-        .join("")
-        .slice(0, 2);
+      const partnerInitials = partnerAlias.slice(0, 2).toUpperCase();
 
       return {
         matchId: m._id,
@@ -232,8 +263,11 @@ export async function getAllConversations(userId) {
         unreadCount,
         partner: {
           id: partnerId,
-          firstName: partnerFirstName,
-          initials: partnerInitials,
+          alias: partnerAlias,
+          firstName: isRevealed ? (partnerFullName.split(" ")[0] || "Match") : partnerAlias,
+          initials: isRevealed
+            ? (partnerFullName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() || "SGT")
+            : partnerInitials,
           fullName: isRevealed ? partnerFullName : undefined,
           profilePhoto: isRevealed
             ? partnerProfile?.profilePhoto?.secureUrl || partnerProfile?.profilePhoto?.url

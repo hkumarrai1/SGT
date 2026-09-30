@@ -2,11 +2,18 @@ import Profile from "../models/Profile.js";
 import Verification from "../models/Verification.js";
 import LivePhoto from "../models/LivePhoto.js";
 import VerificationApplication from "../models/VerificationApplication.js";
+import { generateAnonymousAlias } from "../utils/aliasGenerator.js";
 
 export async function getAuthoritativeStatus(userId) {
-  const profile = await Profile.findOne({ userId })
+  let profile = await Profile.findOne({ userId })
     .populate("institutionId", "name shortName city")
     .lean();
+
+  if (profile && !profile.anonymousAlias) {
+    const alias = generateAnonymousAlias();
+    await Profile.updateOne({ userId }, { $set: { anonymousAlias: alias } });
+    profile.anonymousAlias = alias;
+  }
   const collegeId = await Verification.findOne({ userId })
     .select("verificationStatus rejectionReason uploadedAt")
     .lean();

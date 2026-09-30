@@ -232,7 +232,7 @@ function AdminVerificationDetail() {
                 🏛️ {application?.institutionId?.name || "University"} · {profile?.course || "Course"}
               </p>
               <p style={{ color: "rgba(255, 248, 242, 0.6)", margin: 0, fontSize: "0.85rem" }}>
-                Student ID: <strong>{profile?.studentId || "N/A"}</strong> · Year: <strong>{profile?.academicYear || "N/A"}</strong> · Gender: <strong>{profile?.gender || "N/A"}</strong>
+                Student ID: <strong>{profile?.studentId || application?.studentId || "N/A"}</strong> · Year: <strong>{profile?.academicYear || "N/A"}</strong> · Gender: <strong>{profile?.gender || "N/A"}</strong>
               </p>
             </div>
 

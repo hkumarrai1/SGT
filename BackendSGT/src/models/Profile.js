@@ -74,8 +74,22 @@ const profileSchema = new mongoose.Schema(
       ref: "Payment",
       default: null,
     },
+    anonymousAlias: {
+      type: String,
+      trim: true,
+      sparse: true,
+      index: true,
+    },
+    revealedWithUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true,
+    },
   },
   { timestamps: true, versionKey: false },
 );
+
+profileSchema.index({ anonymousAlias: 1 }, { unique: true, sparse: true });
 
 export default mongoose.model("Profile", profileSchema);
