@@ -77,8 +77,6 @@ const profileSchema = new mongoose.Schema(
     anonymousAlias: {
       type: String,
       trim: true,
-      sparse: true,
-      index: true,
     },
     revealedWithUserId: {
       type: mongoose.Schema.Types.ObjectId,

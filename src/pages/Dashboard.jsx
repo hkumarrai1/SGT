@@ -463,14 +463,14 @@ function Dashboard() {
 
           <div className="dashboard-hero-body">
             <div className="dashboard-kicker">
-              <span>SGT PROFILE</span>
+              <span>CAMPUS SPOTLIGHT · DANDIYA &apos;26</span>
               <i aria-hidden="true" />
             </div>
             <h1 className="dashboard-hero-title">
-              Welcome back, <em>{firstName}.</em>
+              Step into the rhythm, <em>{firstName}.</em>
             </h1>
             <p className="dashboard-hero-subtitle">
-              Your SGT journey starts here.
+              Sync your vibe, discover your Garba partner, and light up the floor.
             </p>
 
             <div className="dashboard-hero-meta">
