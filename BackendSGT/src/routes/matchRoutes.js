@@ -9,6 +9,7 @@ import {
 } from "../controllers/matchController.js";
 import {
   getMatchChat,
+  getAllMatchConversations,
   sendChatMessage,
   revealProfile,
   endMatch,
@@ -21,6 +22,7 @@ router.use(requireAuth);
 router.post("/find", asyncHandler(findMatch));
 router.get("/current", asyncHandler(getActiveMatch));
 router.get("/session", asyncHandler(getMatchSession));
+router.get("/conversations", asyncHandler(getAllMatchConversations));
 router.post("/:matchId/decline", asyncHandler(declineActiveMatch));
 
 // Chat & Mutual Reveal Endpoints

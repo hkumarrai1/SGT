@@ -174,3 +174,91 @@ export async function unmatch(userId, matchId) {
 
   return { success: true, message: "Match ended successfully." };
 }
+
+/**
+ * Get all conversations for a user with unread counts and last message.
+ */
+export async function getAllConversations(userId) {
+  const matches = await Match.find({
+    $or: [{ user1Id: userId }, { user2Id: userId }],
+  })
+    .sort({ lastMessageAt: -1, updatedAt: -1, matchedAt: -1 })
+    .lean();
+
+  if (!matches || matches.length === 0) {
+    return { conversations: [], totalUnreadCount: 0 };
+  }
+
+  let totalUnreadCount = 0;
+
+  const conversations = await Promise.all(
+    matches.map(async (m) => {
+      const isUser1 = m.user1Id.toString() === userId.toString();
+      const partnerId = isUser1 ? m.user2Id : m.user1Id;
+
+      const [partnerProfile, partnerQuest, lastMsg, unreadCount] = await Promise.all([
+        Profile.findOne({ userId: partnerId })
+          .populate("institutionId", "name shortName city")
+          .lean(),
+        QuestionnaireResponse.findOne({ userId: partnerId }).select("tags").lean(),
+        Message.findOne({ matchId: m._id }).sort({ createdAt: -1 }).lean(),
+        Message.countDocuments({
+          matchId: m._id,
+          recipientId: userId,
+          isRead: false,
+        }),
+      ]);
+
+      totalUnreadCount += unreadCount;
+
+      const isRevealed = Boolean(m.isRevealed);
+      const partnerFullName = partnerProfile?.fullName || "Student";
+      const partnerFirstName = partnerFullName.trim().split(" ")[0] || "Match";
+      const partnerInitials = partnerFullName
+        .split(" ")
+        .map((w) => w[0])
+        .filter(Boolean)
+        .join("")
+        .slice(0, 2);
+
+      return {
+        matchId: m._id,
+        status: m.status,
+        isActive: m.status === "ACTIVE",
+        compatibilityScore: m.compatibilityScore,
+        synthesis: m.synthesis || {},
+        isRevealed,
+        matchedAt: m.matchedAt,
+        unreadCount,
+        partner: {
+          id: partnerId,
+          firstName: partnerFirstName,
+          initials: partnerInitials,
+          fullName: isRevealed ? partnerFullName : undefined,
+          profilePhoto: isRevealed
+            ? partnerProfile?.profilePhoto?.secureUrl || partnerProfile?.profilePhoto?.url
+            : undefined,
+          college:
+            partnerProfile?.institutionId?.shortName ||
+            partnerProfile?.institutionId?.name ||
+            "Campus",
+          course: partnerProfile?.course,
+          academicYear: partnerProfile?.academicYear,
+          gender: partnerProfile?.gender,
+          tags: partnerQuest?.tags || [],
+        },
+        lastMessage: lastMsg
+          ? {
+              id: lastMsg._id,
+              text: lastMsg.text,
+              isMine: lastMsg.senderId.toString() === userId.toString(),
+              isRead: lastMsg.isRead,
+              createdAt: lastMsg.createdAt,
+            }
+          : null,
+      };
+    }),
+  );
+
+  return { conversations, totalUnreadCount };
+}

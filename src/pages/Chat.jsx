@@ -13,6 +13,10 @@ function Chat() {
   });
 
   const [chatData, setChatData] = useState(null);
+  const [conversations, setConversations] = useState([]);
+  const [totalUnreadCount, setTotalUnreadCount] = useState(0);
+  const [showDrawer, setShowDrawer] = useState(false);
+  const [noMatch, setNoMatch] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +35,7 @@ function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // 1. Initial Load: Fetch active match if matchId is not in URL
+  // 1. Initial Load: Fetch all conversations and resolve active match
   useEffect(() => {
     if (!isAuthenticated) {
       window.location.assign("/auth?mode=login");
@@ -40,20 +44,34 @@ function Chat() {
 
     async function resolveMatch() {
       try {
-        if (!matchId) {
-          const res = await fetch(`${API_URL}/api/matches/current`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await res.json();
-          if (!res.ok || !data.match) {
-            window.location.assign("/dashboard");
-            return;
+        const convRes = await fetch(`${API_URL}/api/matches/conversations`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const convData = await convRes.json();
+
+        if (convRes.ok && Array.isArray(convData.conversations)) {
+          setConversations(convData.conversations);
+          setTotalUnreadCount(convData.totalUnreadCount || 0);
+
+          if (!matchId) {
+            // Find active conversation or first available
+            const active = convData.conversations.find((c) => c.isActive) || convData.conversations[0];
+            if (active) {
+              setMatchId(active.matchId);
+              window.history.replaceState({}, "", `/chat/${active.matchId}`);
+            } else {
+              setNoMatch(true);
+              setIsLoading(false);
+            }
           }
-          setMatchId(data.match.matchId);
+        } else if (!matchId) {
+          setNoMatch(true);
+          setIsLoading(false);
         }
       } catch (err) {
         console.error("Match resolution failed:", err);
         setStatusAlert({ type: "error", message: "Failed to connect to chat." });
+        setIsLoading(false);
       }
     }
 
@@ -77,7 +95,7 @@ function Chat() {
 
         if (!res.ok) {
           if (res.status === 404) {
-            window.location.assign("/dashboard");
+            setNoMatch(true);
             return;
           }
           throw new Error(data.message || "Failed to load chat.");
@@ -234,6 +252,24 @@ function Chat() {
     );
   }
 
+  if (noMatch) {
+    return (
+      <main className="chat-page" style={{ display: "grid", placeItems: "center" }}>
+        <Background />
+        <div className="chat-no-match-box">
+          <div style={{ fontSize: "2.5rem", marginBottom: "0.8rem" }}>💬</div>
+          <h2>No Active Chats Yet</h2>
+          <p>
+            You haven't matched with a Dandiya partner yet. Head to your dashboard to scan the campus rhythm and find your match!
+          </p>
+          <a href="/dashboard" className="chat-no-match-btn">
+            Find Dandiya Partner on Dashboard →
+          </a>
+        </div>
+      </main>
+    );
+  }
+
   const partner = chatData?.partner || {};
   const isRevealed = Boolean(chatData?.isRevealed);
   const myRevealed = Boolean(chatData?.myRevealed);
@@ -256,6 +292,20 @@ function Chat() {
               ← Dashboard
             </button>
 
+            {conversations.length > 0 && (
+              <button
+                type="button"
+                className="chat-drawer-btn"
+                onClick={() => setShowDrawer(true)}
+                title="View All Chats"
+              >
+                <span>💬 Chats ({conversations.length})</span>
+                {totalUnreadCount > 0 && (
+                  <span className="chat-drawer-unread-dot">{totalUnreadCount}</span>
+                )}
+              </button>
+            )}
+
             <div className="chat-avatar-wrap">
               {isRevealed && partner.profilePhoto ? (
                 <img
@@ -273,7 +323,7 @@ function Chat() {
 
             <div className="chat-partner-info">
               <div className="chat-partner-title">
-                <span>{isRevealed ? partner.fullName : "Anonymous Match"}</span>
+                <span>{isRevealed ? partner.fullName : (partner.firstName ? `${partner.firstName} (Anonymous)` : "Anonymous Match")}</span>
                 {chatData?.compatibilityScore && (
                   <span className="chat-match-badge">
                     {chatData.compatibilityScore}% Match
@@ -382,6 +432,9 @@ function Chat() {
                     </div>
                   )}
                   <div className="chat-bubble">
+                    <div className={`chat-bubble-sender-title ${msg.isMine ? "is-mine" : ""}`}>
+                      {msg.isMine ? "You" : (isRevealed ? partner.fullName : (partner.firstName || "Your Dandiya Match"))}
+                    </div>
                     <div className="chat-bubble-text">{msg.text}</div>
                     <div className="chat-bubble-footer">
                       <span>{timeStr}</span>
@@ -403,7 +456,7 @@ function Chat() {
             <textarea
               ref={inputRef}
               className="chat-textarea"
-              placeholder="Send an anonymous message... (Press Enter to send)"
+              placeholder="Send a message... (Press Enter to send)"
               value={inputText}
               rows={1}
               onChange={(e) => setInputText(e.target.value)}
@@ -426,6 +479,65 @@ function Chat() {
           </form>
         </div>
       </div>
+
+      {/* CONVERSATIONS DRAWER MODAL */}
+      {showDrawer && (
+        <div className="chat-drawer-backdrop" onClick={() => setShowDrawer(false)}>
+          <div className="chat-drawer-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="chat-drawer-header">
+              <h3>All Chats</h3>
+              <button
+                type="button"
+                className="chat-drawer-close"
+                onClick={() => setShowDrawer(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="chat-drawer-list">
+              {conversations.map((conv) => {
+                const isSelected = conv.matchId === matchId;
+                const p = conv.partner || {};
+                return (
+                  <div
+                    key={conv.matchId}
+                    className={`chat-drawer-item ${isSelected ? "is-active" : ""}`}
+                    onClick={() => {
+                      setMatchId(conv.matchId);
+                      window.history.replaceState({}, "", `/chat/${conv.matchId}`);
+                      setShowDrawer(false);
+                      setIsLoading(true);
+                    }}
+                  >
+                    <div className="chat-drawer-avatar">
+                      {p.initials || "SGT"}
+                    </div>
+                    <div className="chat-drawer-info">
+                      <div className="chat-drawer-name-row">
+                        <span className="chat-drawer-name">
+                          {conv.isRevealed ? p.fullName : (p.firstName || "Dandiya Match")}
+                        </span>
+                        <span className="chat-drawer-score">
+                          {conv.compatibilityScore}%
+                        </span>
+                      </div>
+                      <p className="chat-drawer-lastmsg">
+                        {conv.lastMessage
+                          ? `${conv.lastMessage.isMine ? "You: " : ""}${conv.lastMessage.text}`
+                          : "No messages yet"}
+                      </p>
+                    </div>
+                    {conv.unreadCount > 0 && (
+                      <span className="chat-drawer-unread">{conv.unreadCount}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL 1: REQUEST REVEAL CONFIRMATION */}
       {showRevealModal && (

@@ -1,9 +1,18 @@
 import {
   getConversation,
+  getAllConversations,
   sendMessage,
   requestProfileReveal,
   unmatch,
 } from "../services/chatService.js";
+
+export async function getAllMatchConversations(req, res) {
+  const data = await getAllConversations(req.user._id);
+  return res.json({
+    success: true,
+    ...data,
+  });
+}
 
 export async function getMatchChat(req, res) {
   const { matchId } = req.params;

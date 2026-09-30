@@ -76,8 +76,10 @@ function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [imgError, setImgError] = useState(false);
 
-  // Matchmaking Engine states (Step 9 & Step 10)
+  // Matchmaking & Chat states
   const [activeMatch, setActiveMatch] = useState(null);
+  const [conversations, setConversations] = useState([]);
+  const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [matchSession, setMatchSession] = useState({ status: "IDLE", attempt: 1 });
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [isMatching, setIsMatching] = useState(false);
@@ -181,12 +183,15 @@ function Dashboard() {
           if (payData.paymentStatus) setPaymentStatus(payData.paymentStatus);
         }
 
-        // 5. Fetch Match Session & Active Match
-        const [matchRes, sessionRes] = await Promise.all([
+        // 5. Fetch Match Session, Active Match & All Conversations
+        const [matchRes, sessionRes, convRes] = await Promise.all([
           fetch(`${API_URL}/api/matches/current`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`${API_URL}/api/matches/session`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_URL}/api/matches/conversations`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -205,6 +210,14 @@ function Dashboard() {
             if (sessionData.session.cooldownSeconds > 0) {
               setCooldownSeconds(sessionData.session.cooldownSeconds);
             }
+          }
+        }
+
+        if (convRes.ok) {
+          const convData = await convRes.json();
+          if (Array.isArray(convData.conversations)) {
+            setConversations(convData.conversations);
+            setTotalUnreadCount(convData.totalUnreadCount || 0);
           }
         }
       } catch (err) {
@@ -386,6 +399,12 @@ function Dashboard() {
           <a href="/">Home</a>
           <a href="#my-vibe">My Vibe</a>
           <a href="#about-you">About You</a>
+          <a href="/chat" className="dashboard-nav-chat-link">
+            <span>💬 Chats</span>
+            {totalUnreadCount > 0 && (
+              <span className="dashboard-nav-unread-badge">{totalUnreadCount}</span>
+            )}
+          </a>
           <a href="/payment" style={{ color: "#f4c66c" }}>
             {paymentStatus === "PAID" ? "My Plan" : "Dandiya Plan"}
           </a>
@@ -506,6 +525,59 @@ function Dashboard() {
             </div>
           </div>
         </section>
+
+        {/* ==========================================================
+            ACTIVE DANDIYA CHAT & CONNECTION BANNER
+            ========================================================== */}
+        {activeMatch && (
+          <section className="dashboard-chat-hub-card" aria-label="Active Dandiya Connection">
+            <div className="dashboard-chat-hub-left">
+              <div className="dashboard-chat-hub-avatar">
+                {activeMatch.partner?.initials || "SGT"}
+                <span className="dashboard-chat-hub-online" />
+              </div>
+              <div className="dashboard-chat-hub-info">
+                <div className="dashboard-chat-hub-tagline">
+                  <span className="dashboard-chat-hub-pill">ACTIVE DANDIYA MATCH</span>
+                  <span className="dashboard-chat-hub-score">{activeMatch.compatibilityScore}% Compatible</span>
+                  {totalUnreadCount > 0 && (
+                    <span className="dashboard-chat-hub-unread-pill">
+                      ● {totalUnreadCount} New Message{totalUnreadCount > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+                <h3>
+                  {activeMatch.isRevealed
+                    ? activeMatch.partner?.fullName
+                    : `${activeMatch.partner?.firstName || "Anonymous Match"} (Vibe Matched)`}
+                </h3>
+                <p className="dashboard-chat-hub-meta">
+                  <span>🏛️ {activeMatch.partner?.college}</span>
+                  <span>🎓 {activeMatch.partner?.course} {activeMatch.partner?.academicYear ? `(Yr ${activeMatch.partner.academicYear})` : ""}</span>
+                  {conversations[0]?.lastMessage ? (
+                    <span className="dashboard-chat-hub-lastmsg">
+                      💬 <em>{conversations[0].lastMessage.isMine ? "You: " : `${activeMatch.partner?.firstName || "Partner"}: `}&quot;{conversations[0].lastMessage.text}&quot;</em>
+                    </span>
+                  ) : (
+                    <span className="dashboard-chat-hub-lastmsg">
+                      💬 <em>No messages yet. Send your first icebreaker!</em>
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="dashboard-chat-hub-right">
+              <a
+                href={`/chat/${activeMatch.matchId}`}
+                className="dashboard-chat-hub-btn"
+              >
+                <span>💬 Open Chat Room</span>
+                <span className="dashboard-chat-hub-arrow">→</span>
+              </a>
+            </div>
+          </section>
+        )}
 
         {/* ==========================================================
             2. PRIMARY "YOUR SGT VIBE" SECTION

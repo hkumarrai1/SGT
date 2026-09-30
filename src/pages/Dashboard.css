@@ -1011,3 +1011,181 @@
     display: none;
   }
 }
+
+/* ==========================================================================
+   Dashboard Chat Hub Banner & Nav Chat Link
+   ========================================================================== */
+.dashboard-nav-chat-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  position: relative;
+}
+
+.dashboard-nav-unread-badge {
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  line-height: 1;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+  animation: pulse 2s infinite;
+}
+
+.dashboard-chat-hub-card {
+  position: relative;
+  margin-top: 1.5rem;
+  border: 1px solid rgba(244, 198, 108, 0.4);
+  border-radius: 16px;
+  padding: 1.4rem 1.8rem;
+  background: linear-gradient(135deg, rgba(45, 14, 38, 0.85), rgba(20, 10, 25, 0.95));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 0 20px rgba(244, 198, 108, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.dashboard-chat-hub-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(244, 198, 108, 0.65);
+}
+
+.dashboard-chat-hub-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.dashboard-chat-hub-avatar {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c52870, #6d1544);
+  border: 2px solid #f4c66c;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(197, 40, 112, 0.4);
+}
+
+.dashboard-chat-hub-online {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid #1a0614;
+}
+
+.dashboard-chat-hub-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.dashboard-chat-hub-tagline {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-chat-hub-pill {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #f4c66c;
+}
+
+.dashboard-chat-hub-score {
+  background: rgba(244, 198, 108, 0.15);
+  border: 1px solid rgba(244, 198, 108, 0.35);
+  color: #f4c66c;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+.dashboard-chat-hub-unread-pill {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  animation: pulse 1.5s infinite;
+}
+
+.dashboard-chat-hub-info h3 {
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.35rem;
+  color: #fff8f2;
+}
+
+.dashboard-chat-hub-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 0.82rem;
+  color: rgba(255, 248, 242, 0.75);
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.dashboard-chat-hub-lastmsg {
+  color: #f4c66c;
+  max-width: 380px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-chat-hub-btn {
+  background: linear-gradient(135deg, #c52870, #961952);
+  border: 1px solid rgba(244, 198, 108, 0.5);
+  color: #fff;
+  padding: 0.75rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 16px rgba(197, 40, 112, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.dashboard-chat-hub-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+}
+
+@media (max-width: 768px) {
+  .dashboard-chat-hub-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.2rem;
+  }
+  .dashboard-chat-hub-btn {
+    text-align: center;
+    justify-content: center;
+  }
+}
