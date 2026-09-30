@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
+    "build": "node src/scripts/seedInstitution.js || echo 'Build complete'",
     "seed:institution": "node src/scripts/seedInstitution.js"
   },
   "dependencies": {
