@@ -1,0 +1,135 @@
+.profile-page {
+  position: relative;
+  min-height: 100svh;
+  padding: 7rem 1.25rem 3rem;
+  color: #fff8f2;
+  font-family: "DM Sans", sans-serif;
+}
+.profile-page::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(15, 5, 24, 0.92), rgba(45, 8, 34, 0.45)),
+    linear-gradient(180deg, rgba(9, 4, 20, 0.2), rgba(9, 4, 20, 0.78));
+  content: "";
+  pointer-events: none;
+}
+.profile-page-shell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(250px, 0.75fr) minmax(360px, 560px);
+  gap: clamp(2rem, 8vw, 7rem);
+  align-items: center;
+  width: min(100%, 1050px);
+  margin: 0 auto;
+}
+.profile-story h2 {
+  margin: 1rem 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(3rem, 5vw, 5rem);
+  font-weight: 800;
+  line-height: 0.94;
+  letter-spacing: -0.04em;
+}
+.profile-story h2 em,
+.profile-card h1 em {
+  color: #f4c66c;
+  font-style: normal;
+}
+.profile-story p {
+  max-width: 330px;
+  color: rgba(255, 248, 242, 0.75);
+  line-height: 1.55;
+}
+.profile-card h1 {
+  margin: 1.2rem 0 1.2rem;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 0.94;
+}
+.profile-form {
+  display: grid;
+  gap: 0.65rem;
+}
+.profile-form label {
+  color: #fff8f2;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.profile-form input,
+.profile-form select {
+  width: 100%;
+  border: 1px solid rgba(255, 248, 242, 0.25);
+  border-radius: 8px;
+  padding: 0.82rem 0.9rem;
+  outline: none;
+  background: rgba(255, 248, 242, 0.08);
+  color: #fff8f2;
+  font: inherit;
+}
+.profile-form select option {
+  color: #24131d;
+}
+.profile-form input:focus,
+.profile-form select:focus {
+  border-color: #f4c66c;
+}
+.profile-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+.profile-form-row > div {
+  display: grid;
+  gap: 0.65rem;
+}
+.profile-institution {
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 0.4rem;
+  border: 1px solid rgba(244, 198, 108, 0.45);
+  border-radius: 8px;
+  padding: 0.8rem 0.9rem;
+  background: rgba(244, 198, 108, 0.1);
+}
+.profile-institution span,
+.profile-institution small {
+  color: rgba(255, 248, 242, 0.6);
+  font-size: 0.68rem;
+}
+.profile-institution strong {
+  color: #f4c66c;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1rem;
+}
+.profile-loading {
+  display: grid;
+  min-height: 15rem;
+  place-items: center;
+}
+.profile-account {
+  margin: 1.3rem 0 0;
+  color: rgba(255, 248, 242, 0.55);
+  font-size: 0.7rem;
+  text-align: center;
+}
+.profile-account strong {
+  color: #f4c66c;
+}
+@media (max-width: 720px) {
+  .profile-page {
+    padding-top: 5.5rem;
+  }
+  .profile-page-shell {
+    display: block;
+    width: min(100%, 560px);
+  }
+  .profile-story {
+    display: none;
+  }
+  .profile-card {
+    padding: 1.4rem;
+  }
+}

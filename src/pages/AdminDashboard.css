@@ -1,0 +1,514 @@
+/* ==========================================================
+   SGT ADMIN DASHBOARD STYLES
+   ========================================================== */
+
+.admin-page {
+  position: relative;
+  min-height: 100svh;
+  padding: 3rem 1.5rem 5rem;
+  background: #0d0514;
+  color: #fff8f2;
+  font-family: "DM Sans", sans-serif;
+}
+
+.admin-page::before {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(232, 93, 67, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(244, 198, 108, 0.08) 0%, transparent 40%);
+  content: "";
+  pointer-events: none;
+}
+
+.admin-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Top Bar */
+.admin-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-topbar-left h1 {
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.admin-topbar-left h1 em {
+  color: #f4c66c;
+  font-style: normal;
+}
+
+.admin-topbar-left p {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  color: rgba(255, 248, 242, 0.6);
+}
+
+.admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-logout-btn {
+  background: rgba(232, 93, 67, 0.15);
+  border: 1px solid rgba(232, 93, 67, 0.4);
+  color: #ff9d8b;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-logout-btn:hover {
+  background: #e85d43;
+  color: #fff;
+}
+
+/* Nav Tabs */
+.admin-tabs {
+  display: flex;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.75rem;
+}
+
+.admin-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 248, 242, 0.65);
+  padding: 0.65rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: all 0.2s ease;
+}
+
+.admin-tab-btn:hover {
+  color: #fff8f2;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-tab-btn.is-active {
+  background: rgba(244, 198, 108, 0.15);
+  border-color: rgba(244, 198, 108, 0.4);
+  color: #f4c66c;
+}
+
+.admin-tab-count {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: inherit;
+}
+
+.admin-tab-btn.is-active .admin-tab-count {
+  background: #f4c66c;
+  color: #1a0820;
+}
+
+/* Filters & Search Toolbar */
+.admin-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.admin-filter-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-filter-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 248, 242, 0.7);
+  padding: 0.35rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-filter-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.admin-filter-chip.is-active {
+  background: #f4c66c;
+  color: #1a0820;
+  border-color: #f4c66c;
+}
+
+.admin-search-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  color: #fff8f2;
+  font-size: 0.85rem;
+  min-width: 260px;
+  outline: none;
+}
+
+.admin-search-input:focus {
+  border-color: #f4c66c;
+}
+
+/* Payments Grid */
+.admin-payments-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+.admin-payment-card {
+  background: rgba(25, 12, 36, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 1.5rem;
+  backdrop-filter: blur(16px);
+  display: grid;
+  grid-template-columns: minmax(280px, 1.2fr) minmax(220px, 1fr) 140px minmax(200px, auto);
+  gap: 1.5rem;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.admin-payment-card:hover {
+  border-color: rgba(244, 198, 108, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 1024px) {
+  .admin-payment-card {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-payment-card {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* User & Plan Info */
+.admin-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.admin-user-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff8f2;
+}
+
+.admin-user-sub {
+  font-size: 0.82rem;
+  color: rgba(255, 248, 242, 0.65);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admin-plan-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.admin-plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #f4c66c;
+}
+
+.admin-utr-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: monospace;
+  font-size: 0.88rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.admin-utr-copy {
+  background: none;
+  border: none;
+  color: #f4c66c;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0;
+}
+
+/* Screenshot Thumbnail */
+.admin-screenshot-thumb {
+  width: 110px;
+  height: 85px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  position: relative;
+  background: #000;
+  transition: transform 0.2s ease;
+}
+
+.admin-screenshot-thumb:hover {
+  transform: scale(1.05);
+  border-color: #f4c66c;
+}
+
+.admin-screenshot-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-screenshot-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.admin-screenshot-thumb:hover .admin-screenshot-overlay {
+  opacity: 1;
+}
+
+/* Card Actions */
+.admin-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+@media (max-width: 1024px) {
+  .admin-card-actions {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+}
+
+.admin-btn-approve {
+  background: #2ecc71;
+  color: #0b2e16;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-approve:hover:not(:disabled) {
+  background: #27ae60;
+  color: #fff;
+}
+
+.admin-btn-reject {
+  background: rgba(232, 93, 67, 0.18);
+  border: 1px solid rgba(232, 93, 67, 0.4);
+  color: #ff9d8b;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-reject:hover:not(:disabled) {
+  background: #e85d43;
+  color: #fff;
+}
+
+.admin-btn-approve:disabled,
+.admin-btn-reject:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Status Chips */
+.admin-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.admin-status-chip.pending {
+  background: rgba(244, 198, 108, 0.15);
+  color: #f4c66c;
+  border: 1px solid rgba(244, 198, 108, 0.35);
+}
+
+.admin-status-chip.approved {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.35);
+}
+
+.admin-status-chip.rejected {
+  background: rgba(232, 93, 67, 0.15);
+  color: #ff9d8b;
+  border: 1px solid rgba(232, 93, 67, 0.35);
+}
+
+/* Modals */
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.admin-modal {
+  background: #170a22;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2rem;
+  width: min(100%, 540px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.admin-modal h3 {
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.6rem;
+}
+
+.admin-modal p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 248, 242, 0.75);
+  line-height: 1.5;
+}
+
+.admin-modal textarea {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.85rem;
+  color: #fff8f2;
+  font-family: inherit;
+  font-size: 0.9rem;
+  min-height: 100px;
+  outline: none;
+  resize: vertical;
+}
+
+.admin-modal textarea:focus {
+  border-color: #f4c66c;
+}
+
+.admin-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.admin-modal-btn-cancel {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff8f2;
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Image Modal */
+.admin-image-modal {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.admin-image-modal img {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.admin-image-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

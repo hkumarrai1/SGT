@@ -1,0 +1,18 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #f4e4d8;
+  color: #24131d;
+  font-family: "DM Sans", sans-serif;
+}
+
+button {
+  font-family: inherit;
+}

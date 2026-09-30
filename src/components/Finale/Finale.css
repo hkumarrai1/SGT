@@ -1,0 +1,239 @@
+.finale {
+  position: relative;
+  overflow: hidden;
+  color: #fff8f2;
+  font-family: "DM Sans", sans-serif;
+}
+
+.finale-faq {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: clamp(3rem, 9vw, 9rem);
+  width: min(100% - 2rem, 1080px);
+  margin: 0 auto;
+  padding: 8rem 0 7rem;
+}
+.finale-intro {
+  padding-top: 1rem;
+}
+.finale-kicker {
+  color: #f4c66c;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+}
+.finale-intro h2 {
+  margin: 1.2rem 0 1rem;
+  color: #fff8f2;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(2.6rem, 4.4vw, 4.5rem);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+.finale-intro h2 em {
+  color: #ed709d;
+  font-style: normal;
+}
+.finale-intro p {
+  max-width: 270px;
+  color: rgba(255, 248, 242, 0.74);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+.finale-accordion {
+  border-top: 1px solid rgba(255, 248, 242, 0.3);
+}
+.finale-item {
+  border-bottom: 1px solid rgba(255, 248, 242, 0.3);
+}
+.finale-item button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  padding: 1.25rem 0.3rem;
+  background: transparent;
+  color: #fff8f2;
+  cursor: pointer;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: left;
+}
+.finale-item button b {
+  color: #f4c66c;
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+.finale-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease;
+}
+.finale-answer p {
+  overflow: hidden;
+  max-width: 650px;
+  margin: 0;
+  color: rgba(255, 248, 242, 0.75);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.finale-item.is-open .finale-answer {
+  grid-template-rows: 1fr;
+}
+.finale-item.is-open .finale-answer p {
+  padding: 0 2.5rem 1.25rem 0.3rem;
+}
+
+.finale-cta {
+  position: relative;
+  padding: 8rem 1rem 8.5rem;
+  background: linear-gradient(
+    135deg,
+    rgba(116, 7, 46, 0.95),
+    rgba(39, 8, 36, 0.96)
+  );
+  text-align: center;
+}
+.finale-cta::before,
+.finale-cta::after {
+  position: absolute;
+  width: 24rem;
+  height: 24rem;
+  border: 1px solid rgba(244, 198, 108, 0.2);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+.finale-cta::before {
+  top: -17rem;
+  left: -7rem;
+}
+.finale-cta::after {
+  right: -8rem;
+  bottom: -18rem;
+}
+.finale-cta-mark {
+  display: block;
+  margin-bottom: 1.3rem;
+  color: #f4c66c;
+  font-size: 1.5rem;
+}
+.finale-cta h2 {
+  position: relative;
+  margin: 1.2rem 0 2rem;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(2.8rem, 5vw, 5.3rem);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+.finale-cta h2 em {
+  color: #f4c66c;
+  font-style: normal;
+}
+.finale-cta a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  border: 1px solid #ed5f97;
+  border-radius: 999px;
+  padding: 1rem 1.7rem;
+  background: #c52870;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+.finale-cta a:hover {
+  filter: brightness(1.12);
+  transform: translateY(-3px);
+}
+.finale-cta a span {
+  font-size: 1.25rem;
+}
+
+.finale-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 2rem;
+  align-items: end;
+  padding: 3rem max(1rem, calc((100% - 1080px) / 2));
+  background: #180b1b;
+}
+.finale-brand {
+  display: grid;
+  gap: 0.3rem;
+}
+.finale-brand strong {
+  color: #f4c66c;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 2.4rem;
+  line-height: 0.8;
+}
+.finale-brand span {
+  color: rgba(255, 248, 242, 0.65);
+  font-size: 0.55rem;
+  letter-spacing: 0.25em;
+}
+.finale-brand p {
+  margin: 0.8rem 0 0;
+  color: #fff8f2;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1rem;
+}
+.finale-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.3rem;
+}
+.finale-footer nav a {
+  color: rgba(255, 248, 242, 0.8);
+  font-size: 0.78rem;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.finale-footer nav a:hover {
+  color: #f4c66c;
+}
+.finale-copyright {
+  justify-self: end;
+  color: rgba(255, 248, 242, 0.45);
+  font-size: 0.7rem;
+}
+
+@media (max-width: 700px) {
+  .finale-faq {
+    display: block;
+    padding: 5rem 0;
+  }
+  .finale-intro {
+    padding-bottom: 2.5rem;
+  }
+  .finale-intro p {
+    max-width: 330px;
+  }
+  .finale-cta {
+    padding: 6rem 1rem;
+  }
+  .finale-cta h2 {
+    font-size: 3rem;
+  }
+  .finale-footer {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .finale-footer nav {
+    justify-content: flex-start;
+    gap: 1rem 1.3rem;
+  }
+  .finale-copyright {
+    justify-self: start;
+  }
+}

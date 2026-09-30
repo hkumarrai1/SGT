@@ -1,0 +1,160 @@
+.college-id-page {
+  position: relative;
+  min-height: 100svh;
+  padding: 7rem 1.25rem 3rem;
+  color: #fff8f2;
+  font-family: "DM Sans", sans-serif;
+}
+.college-id-page::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(15, 5, 24, 0.92), rgba(45, 8, 34, 0.45)),
+    linear-gradient(180deg, rgba(9, 4, 20, 0.2), rgba(9, 4, 20, 0.78));
+  content: "";
+  pointer-events: none;
+}
+.college-id-shell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(250px, 0.75fr) minmax(360px, 520px);
+  gap: clamp(2rem, 8vw, 7rem);
+  align-items: center;
+  width: min(100%, 1020px);
+  margin: 0 auto;
+}
+.college-id-story h2 {
+  margin: 1rem 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(3rem, 5vw, 5rem);
+  font-weight: 800;
+  line-height: 0.94;
+  letter-spacing: -0.04em;
+}
+.college-id-story h2 em,
+.college-id-card h1 em {
+  color: #f4c66c;
+  font-style: normal;
+}
+.college-id-story p {
+  max-width: 330px;
+  color: rgba(255, 248, 242, 0.75);
+  line-height: 1.55;
+}
+.college-id-card h1 {
+  margin: 1.2rem 0 1rem;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 0.94;
+}
+.college-id-form {
+  display: grid;
+  gap: 0.7rem;
+}
+.college-id-preview-wrap {
+  display: grid;
+  min-height: 11rem;
+  margin: 0.3rem auto 0.5rem;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid rgba(244, 198, 108, 0.5);
+  border-radius: 10px;
+  background: rgba(244, 198, 108, 0.08);
+}
+.college-id-preview {
+  display: block;
+  width: 100%;
+  max-height: 18rem;
+  object-fit: contain;
+}
+.college-id-empty {
+  color: rgba(255, 248, 242, 0.5);
+  font-size: 0.8rem;
+}
+.college-id-file-input {
+  display: none;
+}
+.college-id-choose {
+  border: 1px solid rgba(244, 198, 108, 0.8);
+  border-radius: 999px;
+  padding: 0.8rem 1rem;
+  background: transparent;
+  color: #f4c66c;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+.college-id-choose:hover {
+  background: rgba(244, 198, 108, 0.1);
+}
+.college-id-requirements,
+.college-id-account {
+  margin: 0;
+  color: rgba(255, 248, 242, 0.55);
+  font-size: 0.7rem;
+  text-align: center;
+}
+.college-id-rejection {
+  margin: 0;
+  border-radius: 7px;
+  padding: 0.7rem;
+  background: rgba(210, 54, 84, 0.2);
+  color: #ffadbb;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.college-id-pending {
+  display: grid;
+  gap: 0.8rem;
+  place-items: center;
+  text-align: center;
+}
+.college-id-status-mark {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(168, 226, 182, 0.2);
+  color: #a8e2b6;
+  font-size: 1.5rem;
+}
+.college-id-pending h3 {
+  margin: 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.5rem;
+}
+.college-id-pending p {
+  margin: 0 0 0.8rem;
+  color: rgba(255, 248, 242, 0.7);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.college-id-loading {
+  display: grid;
+  min-height: 18rem;
+  place-items: center;
+}
+.college-id-account {
+  margin-top: 1.3rem;
+}
+.college-id-account strong {
+  color: #f4c66c;
+}
+@media (max-width: 720px) {
+  .college-id-page {
+    padding-top: 5.5rem;
+  }
+  .college-id-shell {
+    display: block;
+    width: min(100%, 520px);
+  }
+  .college-id-story {
+    display: none;
+  }
+  .college-id-card {
+    padding: 1.4rem;
+  }
+}

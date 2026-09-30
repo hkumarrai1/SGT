@@ -1,0 +1,5 @@
+.home-page {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+}

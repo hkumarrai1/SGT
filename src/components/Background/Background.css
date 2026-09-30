@@ -1,0 +1,28 @@
+.site-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(12, 6, 23, 0.5) 0,
+      rgba(12, 6, 23, 0.2) 35%,
+      rgba(242, 226, 214, 0.78) 77%,
+      rgba(244, 228, 216, 0.96) 100%
+    ),
+    url("/images/hero-bg.png") center top / cover no-repeat;
+  background-attachment: fixed;
+}
+
+.site-background::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(12, 6, 23, 0.28),
+    transparent 28%,
+    transparent 72%,
+    rgba(12, 6, 23, 0.2)
+  );
+  content: "";
+}
