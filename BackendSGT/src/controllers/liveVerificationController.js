@@ -10,7 +10,11 @@ import {
 } from "../services/liveSessionService.js";
 
 export async function createLivePhotoSession(req, res) {
-  const session = await createLiveSession(req.user._id);
+  const clientOrigin =
+    req.body?.origin ||
+    req.headers.origin ||
+    (req.headers.referer ? new URL(req.headers.referer).origin : null);
+  const session = await createLiveSession(req.user._id, clientOrigin);
   return res.status(201).json({ success: true, session });
 }
 

@@ -16,11 +16,17 @@ function MobileLivePhoto() {
   const token = new URLSearchParams(window.location.search).get("t");
 
   function stopCamera() {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
   }
 
   async function startCamera() {
+    stopCamera();
+    setCameraState("checking");
+    setStatus({ type: "", message: "" });
+
     if (!token || !navigator.mediaDevices?.getUserMedia) {
       setCameraState("unavailable");
       setStatus({
@@ -41,12 +47,20 @@ function MobileLivePhoto() {
           connectData.message ||
             "This verification session is no longer active.",
         );
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false,
-      });
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
       streamRef.current = stream;
-      if (videoRef.current) videoRef.current.srcObject = stream;
       setCameraState("ready");
     } catch (error) {
       setCameraState("unavailable");
@@ -62,16 +76,51 @@ function MobileLivePhoto() {
     return () => stopCamera();
   }, []);
 
+  useEffect(() => {
+    if (cameraState === "ready" && videoRef.current && streamRef.current) {
+      const video = videoRef.current;
+      video.srcObject = streamRef.current;
+      video.onloadedmetadata = () => {
+        video.play().catch((err) => console.warn("Mobile video autoplay prevented:", err));
+      };
+      video.play().catch(() => {});
+    }
+  }, [cameraState]);
+
   function capturePhoto() {
     const video = videoRef.current;
-    if (!video || !video.videoWidth) return;
+    if (!video) return;
+
+    const width = video.videoWidth || video.clientWidth || 640;
+    const height = video.videoHeight || video.clientHeight || 480;
+
+    if (width === 0 || height === 0) {
+      setStatus({
+        type: "error",
+        message: "Camera feed is still loading. Please wait a moment and try again.",
+      });
+      return;
+    }
+
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+
+    // Mirror image horizontally to match the selfie preview
+    ctx.translate(width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, width, height);
+
     canvas.toBlob(
       (blob) => {
-        if (!blob) return;
+        if (!blob) {
+          setStatus({
+            type: "error",
+            message: "Unable to capture photo. Please try again.",
+          });
+          return;
+        }
         setCaptured(blob);
         setPreview(URL.createObjectURL(blob));
         stopCamera();

@@ -20,29 +20,47 @@ function LivePhoto() {
   const [isSaving, setIsSaving] = useState(false);
 
   function stopCamera() {
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
   }
 
   async function startCamera() {
+    stopCamera();
+    setCameraState("checking");
+    setStatus({ type: "", message: "" });
+
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraState("unavailable");
+      setStatus({
+        type: "error",
+        message: "Camera access is unavailable on this browser. You can use your phone instead.",
+      });
       return;
     }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: false,
-      });
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      }
       streamRef.current = stream;
-      if (videoRef.current) videoRef.current.srcObject = stream;
       setCameraState("ready");
     } catch {
       setCameraState("unavailable");
       setStatus({
         type: "error",
         message:
-          "Camera access was unavailable. You can use your phone instead.",
+          "Camera access was denied or not found. You can use your phone instead.",
       });
     }
   }
@@ -59,16 +77,51 @@ function LivePhoto() {
     };
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    if (cameraState === "ready" && videoRef.current && streamRef.current) {
+      const video = videoRef.current;
+      video.srcObject = streamRef.current;
+      video.onloadedmetadata = () => {
+        video.play().catch((err) => console.warn("Video autoplay prevented:", err));
+      };
+      video.play().catch(() => {});
+    }
+  }, [cameraState]);
+
   function capturePhoto() {
     const video = videoRef.current;
-    if (!video || !video.videoWidth) return;
+    if (!video) return;
+
+    const width = video.videoWidth || video.clientWidth || 640;
+    const height = video.videoHeight || video.clientHeight || 480;
+
+    if (width === 0 || height === 0) {
+      setStatus({
+        type: "error",
+        message: "Camera feed is still loading. Please wait a moment and try again.",
+      });
+      return;
+    }
+
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+
+    // Mirror image horizontally to match the selfie preview
+    ctx.translate(width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, 0, 0, width, height);
+
     canvas.toBlob(
       (blob) => {
-        if (!blob) return;
+        if (!blob) {
+          setStatus({
+            type: "error",
+            message: "Unable to capture photo. Please try again.",
+          });
+          return;
+        }
         if (previewRef.current) URL.revokeObjectURL(previewRef.current);
         const nextPreview = URL.createObjectURL(blob);
         previewRef.current = nextPreview;
@@ -118,7 +171,11 @@ function LivePhoto() {
     try {
       const response = await fetch(`${API_URL}/api/verification/live-session`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ origin: window.location.origin }),
       });
       const data = await response.json();
       if (!response.ok)

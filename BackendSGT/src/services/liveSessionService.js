@@ -32,7 +32,7 @@ async function ensureReadyForLivePhoto(userId) {
   return profile;
 }
 
-export async function createLiveSession(userId) {
+export async function createLiveSession(userId, clientBaseUrl = null) {
   await ensureReadyForLivePhoto(userId);
   await LiveVerificationSession.updateMany(
     { userId, status: { $in: ["ACTIVE", "PHONE_CONNECTED"] } },
@@ -51,8 +51,15 @@ export async function createLiveSession(userId) {
     expiresAt,
   });
 
-  const baseUrl = env.mobileVerifyBaseUrl || env.clientUrl;
-  const mobileUrl = `${baseUrl.replace(/\/$/, "")}/verify/mobile?t=${encodeURIComponent(token)}`;
+  const baseUrl = (
+    clientBaseUrl ||
+    env.mobileVerifyBaseUrl ||
+    env.clientUrl ||
+    "http://localhost:5173"
+  )
+    .trim()
+    .replace(/\/+$/, "");
+  const mobileUrl = `${baseUrl}/verify/mobile?t=${encodeURIComponent(token)}`;
   const qrDataUrl = await QRCode.toDataURL(mobileUrl, {
     errorCorrectionLevel: "M",
     margin: 2,
