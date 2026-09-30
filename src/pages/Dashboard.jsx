@@ -98,26 +98,45 @@ function Dashboard() {
         });
         const statusData = await statusRes.json();
 
-        if (statusRes.ok && statusData.onboarding) {
-          const { onboarding } = statusData;
-
-          // Gatekeeping check: ensure user has completed verification & questionnaire
-          if (onboarding.questionnaireStatus !== "COMPLETED") {
-            if (onboarding.verificationStatus === "VERIFIED") {
-              window.location.assign("/questionnaire");
-              return;
-            } else if (onboarding.verificationStatus === "PENDING") {
-              window.location.assign("/verification/pending");
-              return;
-            } else {
-              window.location.assign("/onboarding/review");
-              return;
-            }
-          }
-
-          if (onboarding.profile) setProfile(onboarding.profile);
-          if (onboarding.institution) setInstitution(onboarding.institution);
+        if (!statusRes.ok || !statusData.onboarding) {
+          window.location.replace("/auth?mode=login");
+          return;
         }
+
+        const { onboarding } = statusData;
+
+        // STRICT VERIFICATION & ONBOARDING GATEKEEPING:
+        // Unverified, pending, or rejected users CANNOT view the Dashboard!
+        if (onboarding.verificationStatus === "PENDING") {
+          window.location.replace("/verification/pending");
+          return;
+        }
+        if (onboarding.verificationStatus === "REJECTED") {
+          window.location.replace("/onboarding/review");
+          return;
+        }
+        if (onboarding.verificationStatus !== "VERIFIED") {
+          const stepMap = {
+            COLLEGE: "/onboarding/college",
+            PROFILE: "/onboarding/profile",
+            PROFILE_PHOTO: "/onboarding/profile-photo",
+            COLLEGE_ID: "/onboarding/college-id",
+            LIVE_PHOTO: "/onboarding/live-photo",
+            REVIEW: "/onboarding/review",
+            VERIFICATION_PENDING: "/verification/pending",
+          };
+          window.location.replace(stepMap[onboarding.nextStep] || "/onboarding/review");
+          return;
+        }
+
+        // User is verified: check if they have answered questionnaire
+        if (onboarding.questionnaireStatus !== "COMPLETED") {
+          window.location.replace("/questionnaire");
+          return;
+        }
+
+        if (onboarding.profile) setProfile(onboarding.profile);
+        if (onboarding.institution) setInstitution(onboarding.institution);
 
         // 2. Fetch Profile Photo & Full Profile Data
         const profileRes = await fetch(`${API_URL}/api/profile`, {
@@ -130,7 +149,7 @@ function Dashboard() {
             setProfilePhoto(profileData.profilePhoto);
           }
           if (profileData.profile) {
-            setProfile((prev) => ({ ...profileData.profile, ...(prev || {}) }));
+            setProfile((prev) => ({ ...(prev || {}), ...profileData.profile }));
           }
           if (profileData.institution) {
             setInstitution(profileData.institution);
@@ -327,7 +346,7 @@ function Dashboard() {
 
   if (!isAuthenticated) return null;
 
-  if (isLoading && !profile) {
+  if (isLoading || !profile) {
     return (
       <main className="dashboard-page">
         <Background />
