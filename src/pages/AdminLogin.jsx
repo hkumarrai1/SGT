@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { useState } from "react";
+import { API_URL } from "../config";
+import "../components/Authentication/Authentication.css";
 
 function AdminLogin() {
   const [id, setId] = useState("");

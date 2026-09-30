@@ -3,8 +3,7 @@ import Background from "../components/Background/Background";
 import Loader from "../components/Loader/Loader";
 import "../components/Authentication/Authentication.css";
 import "./LivePhoto.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_URL } from "../config";
 
 function MobileLivePhoto() {
   const videoRef = useRef(null);

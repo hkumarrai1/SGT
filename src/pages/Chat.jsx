@@ -3,8 +3,7 @@ import { useAuth } from "../store";
 import Background from "../components/Background/Background";
 import Loader from "../components/Loader/Loader";
 import "./Chat.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_URL } from "../config";
 
 function Chat() {
   const { token, isAuthenticated } = useAuth();

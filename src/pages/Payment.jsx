@@ -3,8 +3,7 @@ import Background from "../components/Background/Background";
 import Loader from "../components/Loader/Loader";
 import { useAuth } from "../store";
 import "./Payment.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_URL } from "../config";
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 

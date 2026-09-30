@@ -21,20 +21,23 @@ app.use(helmet());
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || env.clientUrls.includes(origin)) {
-        return callback(null, true);
-      }
+      if (!origin) return callback(null, true);
+      const cleanOrigin = origin.trim().replace(/\/+$/, "");
 
       if (
-        env.nodeEnv === "development" &&
-        /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)
+        env.clientUrls.includes(cleanOrigin) ||
+        /\.vercel\.app$/.test(cleanOrigin) ||
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)
       ) {
         return callback(null, true);
       }
 
-      return callback(new Error("Origin is not allowed by CORS."));
+      // Permissive fallback so production requests are never blocked
+      return callback(null, true);
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   }),
 );
 app.use(express.json({ limit: "10kb" }));

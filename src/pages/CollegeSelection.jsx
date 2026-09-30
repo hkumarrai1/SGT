@@ -4,8 +4,7 @@ import Loader from "../components/Loader/Loader";
 import { useAuth } from "../store";
 import "../components/Authentication/Authentication.css";
 import "./CollegeSelection.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_URL } from "../config";
 
 function CollegeSelection() {
   const { token, isAuthenticated } = useAuth();

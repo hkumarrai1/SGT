@@ -3,8 +3,7 @@ import { useAuth } from "../store";
 import Loader from "../components/Loader/Loader";
 import Background from "../components/Background/Background";
 import "../components/Authentication/Authentication.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_URL } from "../config";
 function Review() {
   const { token, isAuthenticated } = useAuth();
   const [review, setReview] = useState(null);

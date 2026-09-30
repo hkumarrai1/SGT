@@ -24,14 +24,14 @@ export function validateEnv() {
 export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
   port: Number(process.env.PORT || 5000),
-  clientUrl: process.env.CLIENT_URL || "http://localhost:5173",
+  clientUrl: (process.env.CLIENT_URL || "http://localhost:5173").trim().replace(/\/+$/, ""),
   clientUrls: (
     process.env.CLIENT_URLS ||
     process.env.CLIENT_URL ||
     "http://localhost:5173"
   )
     .split(",")
-    .map((url) => url.trim())
+    .map((url) => url.trim().replace(/\/+$/, ""))
     .filter(Boolean),
   mongodbUri: process.env.MONGODB_URI,
   jwtSecret: process.env.JWT_SECRET,
