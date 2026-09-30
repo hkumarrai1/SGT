@@ -30,7 +30,16 @@ function AuthForm({ mode = "signup", onSwitch }) {
         },
       );
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Unable to send OTP.");
+      if (!response.ok) {
+        if (response.status === 404 || data.isNewUser) {
+          setStatus({
+            type: "new_user",
+            message: data.message || "No account found with this email. Please sign up first.",
+          });
+          return;
+        }
+        throw new Error(data.message || "Unable to send OTP.");
+      }
       setStep("otp");
       setStatus({
         type: "success",
@@ -97,7 +106,7 @@ function AuthForm({ mode = "signup", onSwitch }) {
           COLLEGE_ID: "/onboarding/college-id",
           LIVE_PHOTO: "/onboarding/live-photo",
         }[onboardingData.onboarding.nextStep] || "/onboarding/college";
-      window.location.assign(nextPath);
+      window.location.replace(nextPath);
     } catch (error) {
       setStatus({ type: "error", message: error.message });
     } finally {
@@ -188,9 +197,21 @@ function AuthForm({ mode = "signup", onSwitch }) {
       )}
 
       {status.message && (
-        <p className={`auth-status auth-status--${status.type}`} role="status">
-          {status.message}
-        </p>
+        <div className={`auth-status auth-status--${status.type}`} role="status">
+          <span>{status.message}</span>
+          {status.type === "new_user" && (
+            <button
+              type="button"
+              className="auth-status-action-btn"
+              onClick={() => {
+                setStatus({ type: "", message: "" });
+                onSwitch("signup");
+              }}
+            >
+              Switch to Sign Up →
+            </button>
+          )}
+        </div>
       )}
       <p className="auth-switch">
         {isSignup ? "Already part of SGT?" : "New to SGT?"}{" "}

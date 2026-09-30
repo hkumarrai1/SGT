@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../store";
 import Background from "../components/Background/Background";
 import Login from "../components/Authentication/Login";
 import SignUp from "../components/Authentication/SignUp";
@@ -11,18 +12,26 @@ function getMode() {
 }
 
 function Authentication() {
+  const { isAuthenticated } = useAuth();
   const [mode, setMode] = useState(getMode);
 
   useEffect(() => {
+    if (isAuthenticated) {
+      window.location.replace("/dashboard");
+      return;
+    }
+
     const handlePopState = () => setMode(getMode());
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  }, [isAuthenticated]);
 
   function switchMode(nextMode) {
     window.history.pushState({}, "", `/auth?mode=${nextMode}`);
     setMode(nextMode);
   }
+
+  if (isAuthenticated) return null;
 
   return (
     <main className="auth-page">

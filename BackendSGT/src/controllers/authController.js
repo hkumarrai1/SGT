@@ -80,6 +80,18 @@ export async function verifySignupOtp(req, res) {
 }
 
 export async function requestLoginOtp(req, res) {
+  const email = requireCampusEmail(req.body?.email);
+
+  // Optimized fast existence check
+  const existingUser = await User.exists({ email, isEmailVerified: true });
+  if (!existingUser) {
+    return res.status(404).json({
+      success: false,
+      isNewUser: true,
+      message: "No account found with this email. Please sign up to join SGT.",
+    });
+  }
+
   return requestOtp(req, res, "login");
 }
 

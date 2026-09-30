@@ -210,6 +210,30 @@
   background: rgba(210, 54, 84, 0.2);
   color: #ffadbb;
 }
+.auth-status--new_user {
+  background: rgba(244, 198, 108, 0.15);
+  border: 1px solid rgba(244, 198, 108, 0.35);
+  color: #fff0d2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.auth-status-action-btn {
+  align-self: flex-start;
+  background: #f4c66c;
+  color: #1a0614;
+  font-weight: 700;
+  border: none;
+  border-radius: 5px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.auth-status-action-btn:hover {
+  background: #ffe39a;
+  transform: translateY(-1px);
+}
 .auth-switch {
   margin: 1.8rem 0 0;
   color: rgba(255, 248, 242, 0.58);
