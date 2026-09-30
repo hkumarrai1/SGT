@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "../../store";
 import "./Working.css";
 
 const plans = [
@@ -40,6 +41,15 @@ const plans = [
 
 function Working() {
   const [selectedPlan, setSelectedPlan] = useState("vibe");
+  const { isAuthenticated } = useAuth();
+
+  const handlePlanClick = (planId) => {
+    if (!isAuthenticated) {
+      window.location.assign("/auth?mode=signup");
+    } else {
+      window.location.assign(`/payment?plan=${planId}`);
+    }
+  };
 
   return (
     <section className="working" id="plans">
@@ -115,7 +125,7 @@ function Working() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => window.location.assign(`/payment?plan=${plan.id}`)}
+                  onClick={() => handlePlanClick(plan.id)}
                 >
                   {plan.cta}
                   <span>→</span>

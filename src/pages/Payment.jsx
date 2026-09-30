@@ -52,12 +52,12 @@ function Payment() {
 
   // Fetch payment status if logged in
   useEffect(() => {
-    async function loadStatus() {
-      if (!isAuthenticated || !token) {
-        setIsLoading(false);
-        return;
-      }
+    if (!isAuthenticated) {
+      window.location.assign("/auth?mode=signup");
+      return;
+    }
 
+    async function loadStatus() {
       try {
         const res = await fetch(`${API_URL}/api/payment/my-payment`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -65,6 +65,7 @@ function Payment() {
 
         if (res.status === 401) {
           logout();
+          window.location.assign("/auth?mode=login");
           return;
         }
 
@@ -229,6 +230,8 @@ function Payment() {
   const isPending =
     paymentStatus === "PENDING" || existingPayment?.status === "PENDING";
   const isRejected = existingPayment?.status === "REJECTED";
+
+  if (!isAuthenticated) return null;
 
   return (
     <main className="payment-page">

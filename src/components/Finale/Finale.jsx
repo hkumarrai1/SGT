@@ -93,7 +93,7 @@ function Finale() {
             Go to Dashboard <span aria-hidden="true">→</span>
           </a>
         ) : (
-          <a href="#plans">
+          <a href="/auth?mode=signup">
             Find My Dandiya Partner <span aria-hidden="true">→</span>
           </a>
         )}
