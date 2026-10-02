@@ -195,18 +195,20 @@ function AdminDashboard() {
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
-        const email = item.userId?.email?.toLowerCase() || "";
-        const name = item.profile?.fullName?.toLowerCase() || "";
-        const studentId = item.profile?.studentId?.toLowerCase() || "";
-        const utr = item.utr?.toLowerCase() || "";
-        const plan = item.planName?.toLowerCase() || "";
+        const email = (item.userEmail || item.userId?.email || "").toLowerCase();
+        const name = (item.studentName || item.profile?.fullName || "").toLowerCase();
+        const studentId = (item.registrationId || item.profile?.studentId || "").toLowerCase();
+        const utr = (item.utr || "").toLowerCase();
+        const plan = (item.planName || "").toLowerCase();
+        const college = (item.institutionName || item.institutionId?.name || "").toLowerCase();
 
         return (
           email.includes(q) ||
           name.includes(q) ||
           studentId.includes(q) ||
           utr.includes(q) ||
-          plan.includes(q)
+          plan.includes(q) ||
+          college.includes(q)
         );
       }
 
@@ -363,9 +365,10 @@ function AdminDashboard() {
             ) : (
               <div className="admin-payments-list">
                 {filteredPayments.map((p) => {
-                  const studentName = p.profile?.fullName || "Student";
-                  const collegeName = p.institutionId?.name || "University";
-                  const regId = p.profile?.studentId || "N/A";
+                  const studentName = p.studentName || p.profile?.fullName || "Student";
+                  const userEmail = p.userEmail || p.userId?.email || "No Email Provided";
+                  const collegeName = p.institutionName || p.institutionId?.name || "University";
+                  const regId = p.registrationId || p.profile?.studentId || "N/A";
                   const isPending = p.status === "PENDING";
                   const isApproved = p.status === "APPROVED";
                   const isRejected = p.status === "REJECTED";
@@ -376,12 +379,31 @@ function AdminDashboard() {
                       <div className="admin-user-info">
                         <div className="admin-user-name">{studentName}</div>
                         <div className="admin-user-sub">
-                          <span>{p.userId?.email}</span>
+                          <span
+                            style={{
+                              color: "#f4c66c",
+                              fontWeight: 700,
+                              fontSize: "0.85rem",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "0.35rem",
+                              background: "rgba(244, 198, 108, 0.12)",
+                              padding: "0.25rem 0.6rem",
+                              borderRadius: "6px",
+                              width: "fit-content",
+                              marginTop: "0.2rem",
+                              marginBottom: "0.2rem",
+                              border: "1px solid rgba(244, 198, 108, 0.25)",
+                            }}
+                            title="Student User Email"
+                          >
+                            ✉️ {userEmail}
+                          </span>
                           <span>
-                            {collegeName} · ID: <strong>{regId}</strong>
+                            🏛️ {collegeName} · Roll/ID: <strong>{regId}</strong>
                           </span>
                           <span style={{ fontSize: "0.74rem", opacity: 0.7 }}>
-                            Submitted:{" "}
+                            🕒 Submitted:{" "}
                             {new Date(p.submittedAt).toLocaleDateString([], {
                               month: "short",
                               day: "numeric",
@@ -401,19 +423,19 @@ function AdminDashboard() {
 
                         {p.utr ? (
                           <div className="admin-utr-box">
-                            <span>UTR: {p.utr}</span>
+                            <span style={{ fontWeight: 700, color: "#f4c66c" }}>UTR: {p.utr}</span>
                             <button
                               type="button"
                               className="admin-utr-copy"
                               onClick={() => handleCopyUtr(p.utr)}
                               title="Copy UTR"
                             >
-                              {copiedUtr === p.utr ? "Copied!" : "📋"}
+                              {copiedUtr === p.utr ? "Copied!" : "📋 Copy"}
                             </button>
                           </div>
                         ) : (
-                          <span style={{ fontSize: "0.76rem", color: "rgba(255, 248, 242, 0.6)" }}>
-                            Receipt screenshot attached
+                          <span style={{ fontSize: "0.76rem", color: "#ff9d8b", fontWeight: 600 }}>
+                            ⚠️ No UTR Provided (Screenshot only)
                           </span>
                         )}
 
@@ -573,18 +595,22 @@ function AdminDashboard() {
               Are you sure you want to approve this payment? This will
               instantaneously activate the{" "}
               <strong>{approveConfirmModal.planName} (₹{approveConfirmModal.amount})</strong>{" "}
-              for <strong>{approveConfirmModal.profile?.fullName || approveConfirmModal.userId?.email}</strong>{" "}
+              for <strong>{approveConfirmModal.studentName || approveConfirmModal.profile?.fullName || "Student"}</strong>{" "}
+              (<span>{approveConfirmModal.userEmail || approveConfirmModal.userId?.email}</span>)
               and unlock all Dandiya matching features.
             </p>
 
             {approveConfirmModal.utr ? (
               <div
                 style={{
-                  background: "rgba(255, 255, 255, 0.05)",
+                  background: "rgba(244, 198, 108, 0.08)",
+                  border: "1px solid rgba(244, 198, 108, 0.25)",
+                  color: "#f4c66c",
                   padding: "0.85rem",
                   borderRadius: "10px",
-                  fontSize: "0.85rem",
+                  fontSize: "0.9rem",
                   fontFamily: "monospace",
+                  fontWeight: 700,
                 }}
               >
                 UTR: {approveConfirmModal.utr}
@@ -626,7 +652,8 @@ function AdminDashboard() {
             <h3>Reject Payment Proof</h3>
             <p>
               Provide a clear reason for rejecting the payment submitted by{" "}
-              <strong>{rejectModal.profile?.fullName || rejectModal.userId?.email}</strong>.
+              <strong>{rejectModal.studentName || rejectModal.profile?.fullName || "Student"}</strong>{" "}
+              (<span>{rejectModal.userEmail || rejectModal.userId?.email}</span>).
               This message will be shown to the student on their payment screen so
               they can resolve it and resubmit.
             </p>

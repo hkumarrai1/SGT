@@ -37,6 +37,7 @@ function Payment() {
   const [paymentStatus, setPaymentStatus] = useState("UNPAID");
 
   const [screenshotFile, setScreenshotFile] = useState(null);
+  const [utr, setUtr] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
@@ -143,6 +144,14 @@ function Payment() {
       return;
     }
 
+    if (!utr.trim()) {
+      setAlert({
+        type: "error",
+        message: "Please enter your 12-digit UTR / UPI Transaction Reference Number.",
+      });
+      return;
+    }
+
     if (!screenshotFile) {
       setAlert({
         type: "error",
@@ -157,6 +166,7 @@ function Payment() {
     try {
       const formData = new FormData();
       formData.append("plan", selectedPlanId);
+      formData.append("utr", utr.trim());
       formData.append("screenshot", screenshotFile);
 
       const response = await fetch(`${API_URL}/api/payment/submit`, {
@@ -181,6 +191,7 @@ function Payment() {
       setExistingPayment(data.payment);
       setPaymentStatus("PENDING");
       setShowResubmitForm(false);
+      setUtr("");
       handleRemoveScreenshot();
     } catch (err) {
       setAlert({
@@ -481,8 +492,28 @@ function Payment() {
               Pay using any UPI app and upload the payment screenshot below.
             </p>
 
-            {/* 6. Form: Screenshot Upload & Submit */}
+            {/* 6. Form: UTR Input, Screenshot Upload & Submit */}
             <form className="payment-simple-form" onSubmit={handleSubmitPayment}>
+              {/* UTR / Transaction ID Input Field */}
+              <div className="payment-utr-input-group">
+                <label htmlFor="payment-utr-input" className="payment-utr-label">
+                  12-Digit UPI UTR / Transaction ID <span className="payment-required">*</span>
+                </label>
+                <input
+                  id="payment-utr-input"
+                  type="text"
+                  value={utr}
+                  onChange={(e) => setUtr(e.target.value)}
+                  placeholder="e.g. 427891234567 or UPI Ref ID"
+                  maxLength={40}
+                  required
+                  className="payment-utr-input"
+                />
+                <span className="payment-utr-hint">
+                  Found in your GPay / PhonePe / Paytm payment receipt under UPI Ref ID or UTR.
+                </span>
+              </div>
+
               {previewUrl ? (
                 <div className="payment-preview-box">
                   <img src={previewUrl} alt="Payment Screenshot Preview" />
@@ -536,7 +567,7 @@ function Payment() {
               <button
                 type="submit"
                 className="payment-submit-btn"
-                disabled={isSubmitting || !screenshotFile}
+                disabled={isSubmitting || !screenshotFile || !utr.trim()}
               >
                 {isSubmitting ? "Uploading Screenshot..." : "Submit Payment"}
               </button>

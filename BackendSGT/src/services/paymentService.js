@@ -86,8 +86,14 @@ export async function submitPaymentProof(
       400,
     );
 
-  // UTR is optional from frontend since admin verifies receipt screenshot directly.
+  // Require UTR from student for clear admin verification
   const cleanedUtr = typeof utr === "string" ? utr.trim().toUpperCase() : "";
+  if (!cleanedUtr) {
+    throw invalid(
+      "Please enter your 12-digit UTR / UPI Transaction Reference Number.",
+      400,
+    );
+  }
 
   // Prevent multiple active PENDING payments from the same user
   const existingPending = await Payment.findOne({ userId, status: "PENDING" });
@@ -103,18 +109,16 @@ export async function submitPaymentProof(
     throw invalid(`Your ${plan.name} is already active!`, 400);
   }
 
-  // If UTR was provided, check for duplicate submissions
-  if (cleanedUtr) {
-    const duplicateUtr = await Payment.findOne({
-      utr: cleanedUtr,
-      status: { $in: ["PENDING", "APPROVED"] },
-    });
-    if (duplicateUtr) {
-      throw invalid(
-        "This UTR / Transaction ID has already been submitted.",
-        400,
-      );
-    }
+  // Check for duplicate UTR submissions
+  const duplicateUtr = await Payment.findOne({
+    utr: cleanedUtr,
+    status: { $in: ["PENDING", "APPROVED"] },
+  });
+  if (duplicateUtr) {
+    throw invalid(
+      "This UTR / Transaction ID has already been submitted.",
+      400,
+    );
   }
 
   // Validate screenshot file
@@ -204,10 +208,18 @@ export async function listPaymentsAdmin({ status } = {}) {
 
     return {
       _id: payment._id,
-      userId: payment.userId?._id,
+      userId: {
+        _id: payment.userId?._id,
+        email: payment.userId?.email || "Unknown",
+      },
       userEmail: payment.userId?.email || "Unknown",
       studentName: studentProfile?.fullName || "Not provided",
+      profile: studentProfile || {
+        fullName: "Not provided",
+        studentId: payment.registrationId || "N/A",
+      },
       registrationId: payment.registrationId || studentProfile?.studentId || "N/A",
+      institutionId: payment.institutionId,
       institutionName: payment.institutionId?.name || "Campus",
       course: studentProfile?.course || "",
       academicYear: studentProfile?.academicYear ? `Year ${studentProfile.academicYear}` : "",
@@ -215,7 +227,7 @@ export async function listPaymentsAdmin({ status } = {}) {
       planName: payment.planName,
       amount: payment.amount,
       currency: payment.currency || "INR",
-      utr: payment.utr,
+      utr: payment.utr || "",
       screenshotUrl: signedUrl || payment.screenshotUrl,
       status: payment.status,
       rejectionReason: payment.rejectionReason,
