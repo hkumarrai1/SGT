@@ -2,6 +2,7 @@ import Authentication from "./pages/Authentication";
 import Home from "./pages/Home";
 import CollegeSelection from "./pages/CollegeSelection";
 import ProfileDetails from "./pages/ProfileDetails";
+import PersonalityTraits from "./pages/PersonalityTraits";
 import CollegeId from "./pages/CollegeId";
 import LivePhotoPlaceholder from "./pages/LivePhotoPlaceholder";
 import LivePhoto from "./pages/LivePhoto";
@@ -39,6 +40,8 @@ function App() {
         <CollegeSelection />
       ) : path === "/onboarding/profile" ? (
         <ProfileDetails />
+      ) : path === "/onboarding/traits" ? (
+        <PersonalityTraits />
       ) : path === "/onboarding/college-id" ? (
         <CollegeId />
       ) : path === "/onboarding/profile-photo" ? (

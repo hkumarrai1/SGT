@@ -73,6 +73,7 @@ function Review() {
               <p>
                 <b>Student ID:</b> {review.profile?.studentId}
               </p>
+              <p>✓ Personality &amp; Dandiya preferences saved</p>
               <p>✓ Profile photo uploaded</p>
               <p>✓ College ID uploaded for review</p>
               <p>✓ Mandatory Live Photo captured</p>
@@ -84,6 +85,13 @@ function Review() {
                 onClick={() => window.location.assign("/onboarding/profile")}
               >
                 Edit profile
+              </button>
+              <button
+                className="live-secondary"
+                type="button"
+                onClick={() => window.location.assign("/onboarding/traits")}
+              >
+                Edit vibe &amp; traits
               </button>
               <button
                 className="live-secondary"

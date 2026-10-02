@@ -89,3 +89,42 @@ export async function saveBasicProfile(userId, payload) {
     { new: true, runValidators: true },
   ).populate("institutionId", "name shortName city");
 }
+
+export async function savePersonalityTraits(userId, traits = {}) {
+  const profile = await Profile.findOne({ userId });
+  if (!profile) throw invalid("Profile not found.", 404);
+
+  const cleanArray = (arr) => Array.isArray(arr) ? arr.map((item) => String(item).trim()).filter(Boolean).slice(0, 10) : [];
+  const cleanStr = (val, max = 150) => (typeof val === "string" ? val.trim().slice(0, max) : "");
+
+  const personalityTraits = {
+    height: cleanStr(traits.height, 50),
+    partnerHeightPref: cleanStr(traits.partnerHeightPref, 100),
+    lifestyleTags: cleanArray(traits.lifestyleTags),
+    zodiacSign: cleanStr(traits.zodiacSign, 50),
+    dandiyaSkill: cleanStr(traits.dandiyaSkill, 100),
+    outfitAesthetic: cleanStr(traits.outfitAesthetic, 100),
+    eventPersona: cleanStr(traits.eventPersona, 100),
+    socialBattery: cleanStr(traits.socialBattery, 100),
+    humorStyle: cleanStr(traits.humorStyle, 100),
+    musicTaste: cleanStr(traits.musicTaste, 100),
+    partnerVibe: cleanStr(traits.partnerVibe, 100),
+    campusPreference: cleanStr(traits.campusPreference, 100),
+    greenFlags: cleanArray(traits.greenFlags),
+  };
+
+  const nextStatus = profile.onboardingStatus === "PROFILE_COMPLETED"
+    ? "TRAITS_COMPLETED"
+    : profile.onboardingStatus;
+
+  return Profile.findOneAndUpdate(
+    { userId },
+    {
+      $set: {
+        personalityTraits,
+        onboardingStatus: nextStatus,
+      },
+    },
+    { new: true },
+  ).populate("institutionId", "name shortName city");
+}

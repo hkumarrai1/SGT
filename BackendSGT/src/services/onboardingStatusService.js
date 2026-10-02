@@ -37,12 +37,29 @@ export async function getAuthoritativeStatus(userId) {
     profile.academicYear &&
     profile.studentId,
   );
+  const completeTraits = Boolean(
+    profile?.personalityTraits &&
+    (profile.personalityTraits.height ||
+     profile.personalityTraits.dandiyaSkill ||
+     profile.personalityTraits.socialBattery ||
+     profile.personalityTraits.musicTaste ||
+     profile.personalityTraits.partnerVibe ||
+     profile.onboardingStatus === "TRAITS_COMPLETED" ||
+     [
+       "TRAITS_COMPLETED",
+       "PROFILE_PHOTO_COMPLETED",
+       "COLLEGE_ID_SUBMITTED",
+       "LIVE_PHOTO_SUBMITTED",
+       "COMPLETED",
+     ].includes(profile.onboardingStatus))
+  );
   const completePhoto = Boolean(profile?.profilePhoto?.publicId);
   const completeLive = Boolean(livePhoto?.status);
 
   let nextStep = "COLLEGE";
   if (!profile?.institutionId) nextStep = "COLLEGE";
   else if (!completeBasic) nextStep = "PROFILE";
+  else if (!completeTraits) nextStep = "TRAITS";
   else if (!completePhoto) nextStep = "PROFILE_PHOTO";
   else if (
     !collegeId?.verificationStatus ||
@@ -74,6 +91,7 @@ export async function getAuthoritativeStatus(userId) {
     activePlan: profile?.activePlan || "none",
     paymentStatus: profile?.paymentStatus || "UNPAID",
     completeBasic,
+    completeTraits,
     completePhoto,
     completeLive,
     nextStep,

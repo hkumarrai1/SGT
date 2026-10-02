@@ -103,11 +103,11 @@ function ProfileDetails() {
         throw new Error(data.message || "Unable to save your profile.");
       setStatus({
         type: "success",
-        message: "Profile saved. Moving to your profile photo...",
+        message: "Profile saved. Moving to personality & preferences...",
       });
       window.setTimeout(
-        () => window.location.assign("/onboarding/profile-photo"),
-        700,
+        () => window.location.assign("/onboarding/traits"),
+        600,
       );
     } catch (error) {
       setStatus({ type: "error", message: error.message });

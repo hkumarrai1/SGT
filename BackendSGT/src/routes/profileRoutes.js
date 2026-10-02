@@ -2,8 +2,10 @@ import { Router } from "express";
 import {
   getBasicProfile,
   getOnboardingStatus,
+  getTraits,
   saveBasicProfileDetails,
   saveInstitution,
+  saveTraits,
   uploadCollegeId,
   uploadProfilePhoto,
 } from "../controllers/profileController.js";
@@ -21,6 +23,8 @@ router.get(
 );
 router.get("/profile", requireAuth, asyncHandler(getBasicProfile));
 router.patch("/profile", requireAuth, asyncHandler(saveBasicProfileDetails));
+router.get("/profile/traits", requireAuth, asyncHandler(getTraits));
+router.patch("/profile/traits", requireAuth, asyncHandler(saveTraits));
 router.post(
   "/profile/photo",
   requireAuth,

@@ -4,6 +4,7 @@ import Profile from "../models/Profile.js";
 import {
   getProfileForUser,
   saveBasicProfile,
+  savePersonalityTraits,
 } from "../services/profileService.js";
 import { saveProfilePhoto } from "../services/profilePhotoService.js";
 import {
@@ -20,6 +21,7 @@ export async function getOnboardingStatus(req, res) {
       institutionSelected: Boolean(state.profile?.institutionId),
       institution: state.profile?.institutionId || null,
       profileComplete: state.completeBasic,
+      traitsComplete: state.completeTraits,
       profilePhotoComplete: state.completePhoto,
       collegeIdStatus: state.collegeId?.verificationStatus || "NOT_UPLOADED",
       collegeIdRejectionReason: state.collegeId?.rejectionReason || null,
@@ -27,6 +29,7 @@ export async function getOnboardingStatus(req, res) {
       verificationStatus: state.verificationStatus,
       questionnaireStatus: state.questionnaireStatus,
       nextStep: state.nextStep,
+      personalityTraits: state.profile?.personalityTraits || null,
       profile: state.completeBasic
         ? {
             fullName: state.profile.fullName,
@@ -73,12 +76,31 @@ export async function getBasicProfile(req, res) {
   });
 }
 
+export async function getTraits(req, res) {
+  const profile = await getProfileForUser(req.user._id);
+  return res.json({
+    success: true,
+    traits: profile?.personalityTraits || {},
+  });
+}
+
+export async function saveTraits(req, res) {
+  const traits = req.body?.traits || req.body || {};
+  const profile = await savePersonalityTraits(req.user._id, traits);
+  return res.json({
+    success: true,
+    message: "Personality traits saved.",
+    traits: profile.personalityTraits,
+    nextStep: "profile-photo",
+  });
+}
+
 export async function saveBasicProfileDetails(req, res) {
   const profile = await saveBasicProfile(req.user._id, req.body);
   return res.json({
     success: true,
     message: "Basic profile saved.",
-    nextStep: "profile-photo",
+    nextStep: "traits",
     institution: profile.institutionId,
   });
 }

@@ -15,6 +15,7 @@ export async function submitVerificationApplication(userId) {
   if (
     !state.profile?.institutionId ||
     !state.completeBasic ||
+    !state.completeTraits ||
     !state.completePhoto ||
     state.collegeId?.verificationStatus !== "PENDING" ||
     !state.completeLive
@@ -63,6 +64,7 @@ export async function getReviewSummary(userId) {
           studentId: state.profile.studentId,
         }
       : null,
+    personalityTraits: state.profile?.personalityTraits || null,
     profilePhoto: state.profile?.profilePhoto
       ? { secureUrl: state.profile.profilePhoto.secureUrl }
       : null,
