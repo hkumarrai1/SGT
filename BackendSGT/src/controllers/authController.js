@@ -66,7 +66,10 @@ export async function verifySignupOtp(req, res) {
       .status(400)
       .json({ success: false, message: "Invalid or expired OTP." });
 
-  const user = await createOrVerifyUser(email);
+  const user = await createOrVerifyUser(email, {
+    termsAccepted: true,
+    termsAcceptedAt: new Date(),
+  });
   await Profile.updateOne(
     { userId: user._id },
     { $setOnInsert: { userId: user._id } },

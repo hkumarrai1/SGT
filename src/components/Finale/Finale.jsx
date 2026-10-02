@@ -109,7 +109,7 @@ function Finale() {
           <a href="#how-it-works">How It Works</a>
           <a href="#safety">Safety</a>
           <a href="#faq">FAQ</a>
-          <a href="#terms">Terms</a>
+          <a href="/terms">Terms</a>
           <a href="#privacy">Privacy</a>
           <a href="#contact">Contact</a>
         </nav>

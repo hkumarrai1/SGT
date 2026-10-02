@@ -20,6 +20,7 @@ import Payment from "./pages/Payment";
 import Chat from "./pages/Chat";
 import Chats from "./pages/Chats";
 import MatchEngine from "./pages/MatchEngine";
+import Terms from "./pages/Terms";
 import { AuthProvider } from "./store";
 import "./App.css";
 
@@ -31,6 +32,8 @@ function App() {
     <AuthProvider>
       {path === "/auth" ? (
         <Authentication />
+      ) : path === "/terms" ? (
+        <Terms />
       ) : path === "/onboarding/college" ? (
         <CollegeSelection />
       ) : path === "/onboarding/profile" ? (
