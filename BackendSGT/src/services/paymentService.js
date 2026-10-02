@@ -3,6 +3,7 @@ import cloudinary from "../config/cloudinary.js";
 import Payment from "../models/Payment.js";
 import Profile from "../models/Profile.js";
 import User from "../models/User.js";
+import PromoCode from "../models/PromoCode.js";
 import { getPlanById } from "../data/plans.js";
 
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -65,7 +66,7 @@ function uploadPrivateScreenshot(buffer) {
 
 export async function submitPaymentProof(
   userId,
-  { planId, plan: planParam, utr },
+  { planId, plan: planParam, utr, promoCode: promoCodeParam },
   file,
 ) {
   const user = await User.findById(userId);
@@ -121,6 +122,26 @@ export async function submitPaymentProof(
     );
   }
 
+  // Promo Code Validation & Price Adjustment
+  let promoDoc = null;
+  const originalAmount = plan.amount;
+  let discountAmount = 0;
+  let finalAmount = plan.amount;
+
+  if (promoCodeParam && typeof promoCodeParam === "string" && promoCodeParam.trim()) {
+    const cleanedCode = promoCodeParam.trim().toUpperCase();
+    promoDoc = await PromoCode.findOne({ code: cleanedCode, isActive: true });
+    if (!promoDoc) {
+      throw invalid("The entered promo code is invalid or has expired.", 400);
+    }
+
+    const isVibe = plan.id === "vibe";
+    discountAmount = isVibe
+      ? (promoDoc.discount499 ?? 150)
+      : (promoDoc.discount999 ?? 250);
+    finalAmount = Math.max(0, originalAmount - discountAmount);
+  }
+
   // Validate screenshot file
   await inspectScreenshot(file);
 
@@ -133,7 +154,11 @@ export async function submitPaymentProof(
     registrationId: profile.studentId || user.email,
     plan: plan.id,
     planName: plan.name,
-    amount: plan.amount,
+    amount: finalAmount,
+    originalAmount,
+    discountAmount,
+    promoCode: promoDoc ? promoDoc.code : null,
+    promoCodeId: promoDoc ? promoDoc._id : null,
     currency: plan.currency,
     utr: cleanedUtr,
     screenshotUrl: uploaded.secure_url,
@@ -291,6 +316,17 @@ export async function approvePaymentAdmin(paymentId, adminId) {
       },
     },
   );
+
+  // Update Influencer statistics if promo code was used
+  if (payment.promoCodeId) {
+    await PromoCode.findByIdAndUpdate(payment.promoCodeId, {
+      $inc: {
+        totalUses: 1,
+        totalRevenue: payment.amount || 0,
+        totalDiscountGiven: payment.discountAmount || 0,
+      },
+    });
+  }
 
   return {
     success: true,

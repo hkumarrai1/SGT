@@ -584,6 +584,13 @@ function AdminMatches() {
             💃 Dandiya Matches & Pairs
             <span className="admin-tab-count">{mutualPairsCount} Paired</span>
           </button>
+          <button
+            type="button"
+            className="admin-tab-btn"
+            onClick={() => window.location.assign("/admin/influencers")}
+          >
+            🌟 Influencer Promo Codes
+          </button>
         </nav>
 
         {/* Global Alert Notification */}

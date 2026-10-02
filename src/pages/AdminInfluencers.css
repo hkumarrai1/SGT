@@ -1,0 +1,346 @@
+/* ==========================================================
+   ADMIN INFLUENCER PROMO CODE HUB STYLES
+   ========================================================== */
+
+.admin-btn-add-influencer {
+  background: linear-gradient(135deg, #e85d43, #f4c66c);
+  color: #1a0820;
+  border: none;
+  padding: 0.55rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(232, 93, 67, 0.35);
+  transition: all 0.2s ease;
+}
+
+.admin-btn-add-influencer:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(244, 198, 108, 0.45);
+}
+
+.admin-influencer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 600px) {
+  .admin-influencer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-influencer-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.admin-influencer-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(244, 198, 108, 0.3);
+  transform: translateY(-2px);
+}
+
+.admin-influencer-card.is-inactive {
+  opacity: 0.65;
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+.admin-inf-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.admin-inf-name {
+  margin: 0 0 0.2rem;
+  font-size: 1.15rem;
+  color: #fff8f2;
+}
+
+.admin-inf-email {
+  font-size: 0.8rem;
+  color: rgba(255, 248, 242, 0.6);
+}
+
+.admin-inf-status-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.admin-inf-status-badge.active {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.4);
+}
+
+.admin-inf-status-badge.inactive {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+}
+
+/* Promo Code Box */
+.admin-inf-code-container {
+  background: linear-gradient(135deg, rgba(244, 198, 108, 0.08), rgba(232, 93, 67, 0.05));
+  border: 1.5px dashed rgba(244, 198, 108, 0.35);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.admin-inf-code-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: rgba(255, 248, 242, 0.5);
+  letter-spacing: 0.08em;
+}
+
+.admin-inf-code-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-inf-code-text {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #f4c66c;
+  letter-spacing: 0.06em;
+  font-family: monospace;
+}
+
+.admin-inf-copy-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff8f2;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-inf-copy-btn:hover {
+  background: #f4c66c;
+  color: #1a0820;
+}
+
+.admin-inf-discount-rates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.72rem;
+  color: rgba(255, 248, 242, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 0.4rem;
+}
+
+/* Metrics 4-grid */
+.admin-inf-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.75rem;
+  border-radius: 10px;
+}
+
+.admin-inf-metric-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admin-inf-metric-label {
+  font-size: 0.68rem;
+  color: rgba(255, 248, 242, 0.5);
+  text-transform: uppercase;
+}
+
+.admin-inf-metric-val {
+  font-size: 0.95rem;
+  color: #fff8f2;
+}
+
+.admin-inf-notes {
+  font-size: 0.78rem;
+  color: rgba(255, 248, 242, 0.7);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border-left: 3px solid #f4c66c;
+}
+
+/* Actions */
+.admin-inf-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+
+.admin-btn-view-conversions {
+  flex: 1;
+  background: rgba(244, 198, 108, 0.15);
+  border: 1px solid rgba(244, 198, 108, 0.4);
+  color: #f4c66c;
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-view-conversions:hover {
+  background: #f4c66c;
+  color: #1a0820;
+}
+
+.admin-btn-toggle-inf {
+  padding: 0.55rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-toggle-inf.btn-deactivate {
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: #f87171;
+}
+
+.admin-btn-toggle-inf.btn-deactivate:hover {
+  background: #f87171;
+  color: #fff;
+}
+
+.admin-btn-toggle-inf.btn-activate {
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: #4ade80;
+}
+
+.admin-btn-toggle-inf.btn-activate:hover {
+  background: #4ade80;
+  color: #1a0820;
+}
+
+.admin-influencer-empty {
+  padding: 4rem 1rem;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  color: rgba(255, 248, 242, 0.6);
+}
+
+/* Conversion Modal Table */
+.admin-conversions-summary-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.admin-conversions-summary-pill.gold {
+  border-color: rgba(244, 198, 108, 0.4);
+  color: #f4c66c;
+}
+
+.admin-conversions-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-conversions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  color: #fff8f2;
+}
+
+.admin-conversions-table th {
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 248, 242, 0.6);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-conversions-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-conversions-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e85d43, #f4c66c);
+  color: #1a0820;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+.admin-conversions-plan {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+.admin-conversions-utr {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: #f4c66c;
+}
+
+.admin-conversions-status {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.admin-conversions-status.approved {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+.admin-conversions-status.pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.admin-conversions-status.rejected {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}

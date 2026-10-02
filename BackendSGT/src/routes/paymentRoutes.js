@@ -7,10 +7,12 @@ import {
   listPlans,
   submitPayment,
 } from "../controllers/paymentController.js";
+import { validatePromoCode } from "../controllers/promoCodeController.js";
 
 const router = Router();
 
 router.get("/plans", asyncHandler(listPlans));
+router.post("/validate-promo", asyncHandler(validatePromoCode));
 router.get("/my-payment", requireAuth, asyncHandler(getPaymentStatus));
 router.get("/status", requireAuth, asyncHandler(getPaymentStatus));
 router.post(

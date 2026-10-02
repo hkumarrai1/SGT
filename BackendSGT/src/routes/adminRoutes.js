@@ -28,6 +28,14 @@ import {
   unblockUserByEmail,
   unpairMatch,
 } from "../controllers/adminMatchController.js";
+import {
+  createInfluencer,
+  deleteInfluencer,
+  getInfluencerConversions,
+  listInfluencers,
+  previewUniqueCode,
+  toggleInfluencerStatus,
+} from "../controllers/promoCodeController.js";
 
 const router = Router();
 router.post("/login", asyncHandler(adminLogin));
@@ -104,6 +112,30 @@ router.post(
   "/users/unblock-by-email",
   requireAdmin,
   asyncHandler(unblockUserByEmail),
+);
+
+// Influencer & Promo Code Management Endpoints
+router.get("/influencers", requireAdmin, asyncHandler(listInfluencers));
+router.post("/influencers", requireAdmin, asyncHandler(createInfluencer));
+router.get(
+  "/influencers/generate-code",
+  requireAdmin,
+  asyncHandler(previewUniqueCode),
+);
+router.get(
+  "/influencers/:influencerId/conversions",
+  requireAdmin,
+  asyncHandler(getInfluencerConversions),
+);
+router.patch(
+  "/influencers/:influencerId/toggle-status",
+  requireAdmin,
+  asyncHandler(toggleInfluencerStatus),
+);
+router.delete(
+  "/influencers/:influencerId",
+  requireAdmin,
+  asyncHandler(deleteInfluencer),
 );
 
 export default router;

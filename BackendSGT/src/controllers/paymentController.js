@@ -21,12 +21,12 @@ export async function getPaymentStatus(req, res) {
 }
 
 export async function submitPayment(req, res) {
-  const { planId, plan, utr } = req.body || {};
+  const { planId, plan, utr, promoCode } = req.body || {};
   const file = req.file;
 
   const payment = await submitPaymentProof(
     req.user._id,
-    { planId, plan, utr },
+    { planId, plan, utr, promoCode },
     file,
   );
 
@@ -38,6 +38,9 @@ export async function submitPayment(req, res) {
       plan: payment.plan,
       planName: payment.planName,
       amount: payment.amount,
+      originalAmount: payment.originalAmount,
+      discountAmount: payment.discountAmount,
+      promoCode: payment.promoCode,
       utr: payment.utr,
       status: payment.status,
       submittedAt: payment.submittedAt,

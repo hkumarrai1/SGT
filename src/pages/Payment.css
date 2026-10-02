@@ -570,3 +570,219 @@
   justify-content: center;
   width: 100%;
 }
+
+/* ==========================================================
+   PROMO CODE STYLING & PRICE CUT ANIMATION
+   ========================================================== */
+.payment-promo-container {
+  width: 100%;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.payment-promo-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.payment-promo-input-row {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.payment-promo-input-row:focus-within {
+  border-color: #f4c66c;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 12px rgba(244, 198, 108, 0.2);
+}
+
+.payment-promo-icon {
+  font-size: 1.1rem;
+  margin-right: 0.5rem;
+  opacity: 0.8;
+}
+
+.payment-promo-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff8f2;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.payment-promo-input::placeholder {
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: normal;
+  color: rgba(255, 248, 242, 0.4);
+}
+
+.payment-promo-apply-btn {
+  background: linear-gradient(135deg, #f4c66c, #e85d43);
+  color: #1a0820;
+  border: none;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payment-promo-apply-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(244, 198, 108, 0.3);
+}
+
+.payment-promo-apply-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.payment-promo-error-msg {
+  font-size: 0.75rem;
+  color: #f87171;
+  padding-left: 0.25rem;
+}
+
+/* Applied Promo Badge */
+.payment-promo-applied-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.12), rgba(244, 198, 108, 0.12));
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  border-radius: 12px;
+  padding: 0.65rem 1rem;
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(74, 222, 128, 0.3);
+  }
+}
+
+.payment-promo-applied-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.payment-applied-icon {
+  font-size: 1.35rem;
+}
+
+.payment-applied-title {
+  font-size: 0.85rem;
+  color: #4ade80;
+  font-weight: 700;
+}
+
+.payment-applied-title strong {
+  color: #f4c66c;
+  letter-spacing: 0.05em;
+}
+
+.payment-applied-sub {
+  font-size: 0.72rem;
+  color: rgba(255, 248, 242, 0.7);
+}
+
+.payment-promo-remove-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 248, 242, 0.7);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payment-promo-remove-btn:hover {
+  background: rgba(232, 93, 67, 0.2);
+  color: #f87171;
+  border-color: #f87171;
+}
+
+/* Price Cut Animation UI */
+.payment-price-wrapper {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.payment-original-cut-price {
+  font-size: 1.35rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: line-through;
+  text-decoration-color: #f87171;
+  text-decoration-thickness: 3px;
+  font-weight: 700;
+  animation: cutPriceAnim 0.4s ease-out;
+}
+
+@keyframes cutPriceAnim {
+  from {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.payment-hero-price.is-discounted {
+  color: #f4c66c;
+  text-shadow: 0 0 20px rgba(244, 198, 108, 0.4);
+}
+
+.payment-discount-save-tag {
+  background: linear-gradient(135deg, #e85d43, #f4c66c);
+  color: #1a0820;
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 10px rgba(232, 93, 67, 0.35);
+  animation: bounceIn 0.5s ease-out;
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Plan selector pill discount price */
+.payment-pill-old-price {
+  font-size: 0.75rem;
+  color: rgba(255, 248, 242, 0.4);
+  margin-right: 0.35rem;
+  text-decoration: line-through;
+  text-decoration-color: #f87171;
+}
+
+.payment-pill-new-price {
+  color: #f4c66c;
+  font-weight: 800;
+}
+

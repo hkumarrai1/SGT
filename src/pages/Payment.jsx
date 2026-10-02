@@ -47,8 +47,63 @@ function Payment() {
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [showResubmitForm, setShowResubmitForm] = useState(false);
 
+  // Promo code state
+  const [promoCodeInput, setPromoCodeInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+  const [promoError, setPromoError] = useState("");
+
   const currentPlan =
     DEFAULT_PLANS.find((p) => p.id === selectedPlanId) || DEFAULT_PLANS[1];
+
+  const effectiveDiscount = useMemo(() => {
+    if (!appliedPromo) return 0;
+    return selectedPlanId === "vibe"
+      ? (appliedPromo.discounts?.vibe?.discount || 150)
+      : (appliedPromo.discounts?.premium?.discount || 250);
+  }, [appliedPromo, selectedPlanId]);
+
+  const effectivePrice = Math.max(0, currentPlan.price - effectiveDiscount);
+
+  const handleApplyPromo = async (e) => {
+    if (e) e.preventDefault();
+    if (!promoCodeInput.trim()) return;
+
+    setIsValidatingPromo(true);
+    setPromoError("");
+
+    try {
+      const res = await fetch(`${API_URL}/api/payment/validate-promo`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: promoCodeInput.trim(),
+          planId: selectedPlanId,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Invalid promo code.");
+      }
+
+      setAppliedPromo(data);
+      setPromoError("");
+    } catch (err) {
+      setPromoError(err.message || "Failed to apply promo code.");
+      setAppliedPromo(null);
+    } finally {
+      setIsValidatingPromo(false);
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setPromoCodeInput("");
+    setPromoError("");
+  };
 
   // Fetch payment status if logged in
   useEffect(() => {
@@ -168,6 +223,9 @@ function Payment() {
       formData.append("plan", selectedPlanId);
       formData.append("utr", utr.trim());
       formData.append("screenshot", screenshotFile);
+      if (appliedPromo?.code) {
+        formData.append("promoCode", appliedPromo.code);
+      }
 
       const response = await fetch(`${API_URL}/api/payment/submit`, {
         method: "POST",
@@ -431,31 +489,116 @@ function Payment() {
           <div className="payment-simple-card">
             {/* 1. Plan Selector Pills */}
             <div className="payment-plan-selector">
-              {DEFAULT_PLANS.map((plan) => (
-                <button
-                  key={plan.id}
-                  type="button"
-                  className={`payment-plan-pill ${
-                    selectedPlanId === plan.id ? "is-selected" : ""
-                  }`}
-                  onClick={() => setSelectedPlanId(plan.id)}
-                >
-                  <span className="payment-pill-name">{plan.name}</span>
-                  <span className="payment-pill-price">₹{plan.price}</span>
-                </button>
-              ))}
+              {DEFAULT_PLANS.map((plan) => {
+                const planDiscount = appliedPromo
+                  ? plan.id === "vibe"
+                    ? appliedPromo.discounts?.vibe?.discount || 150
+                    : appliedPromo.discounts?.premium?.discount || 250
+                  : 0;
+                const planFinal = Math.max(0, plan.price - planDiscount);
+
+                return (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    className={`payment-plan-pill ${
+                      selectedPlanId === plan.id ? "is-selected" : ""
+                    }`}
+                    onClick={() => setSelectedPlanId(plan.id)}
+                  >
+                    <span className="payment-pill-name">{plan.name}</span>
+                    <span className="payment-pill-price">
+                      {appliedPromo ? (
+                        <>
+                          <s className="payment-pill-old-price">₹{plan.price}</s>
+                          <strong className="payment-pill-new-price">₹{planFinal}</strong>
+                        </>
+                      ) : (
+                        `₹${plan.price}`
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* 2. Plan Name & Amount Display */}
+            {/* 2. Promo Code Input & Validation Box */}
+            <div className="payment-promo-container">
+              {!appliedPromo ? (
+                <div className="payment-promo-box">
+                  <div className="payment-promo-input-row">
+                    <span className="payment-promo-icon">🏷️</span>
+                    <input
+                      type="text"
+                      placeholder="Have an influencer promo code?"
+                      value={promoCodeInput}
+                      onChange={(e) => {
+                        setPromoCodeInput(e.target.value.toUpperCase());
+                        if (promoError) setPromoError("");
+                      }}
+                      className="payment-promo-input"
+                      maxLength={30}
+                    />
+                    <button
+                      type="button"
+                      className="payment-promo-apply-btn"
+                      onClick={handleApplyPromo}
+                      disabled={isValidatingPromo || !promoCodeInput.trim()}
+                    >
+                      {isValidatingPromo ? "Verifying..." : "Apply"}
+                    </button>
+                  </div>
+                  {promoError && (
+                    <div className="payment-promo-error-msg">⚠️ {promoError}</div>
+                  )}
+                </div>
+              ) : (
+                <div className="payment-promo-applied-badge">
+                  <div className="payment-promo-applied-left">
+                    <span className="payment-applied-icon">🎉</span>
+                    <div>
+                      <div className="payment-applied-title">
+                        Code <strong>{appliedPromo.code}</strong> Applied!
+                      </div>
+                      <div className="payment-applied-sub">
+                        ₹{effectiveDiscount} discount unlocked via {appliedPromo.influencerName}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="payment-promo-remove-btn"
+                    onClick={handleRemovePromo}
+                    title="Remove code"
+                  >
+                    ✕ Remove
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Plan Name & Amount Display with Cut Animation */}
             <div className="payment-amount-hero">
               <h1 className="payment-hero-plan-name">{currentPlan.name}</h1>
-              <div className="payment-hero-price">
-                <span>₹</span>
-                {currentPlan.price}
+              <div className="payment-price-wrapper">
+                {appliedPromo && (
+                  <span className="payment-original-cut-price">
+                    ₹{currentPlan.price}
+                  </span>
+                )}
+                <div className={`payment-hero-price ${appliedPromo ? "is-discounted" : ""}`}>
+                  <span>₹</span>
+                  {effectivePrice}
+                </div>
+                {appliedPromo && (
+                  <span className="payment-discount-save-tag">
+                    SAVE ₹{effectiveDiscount}
+                  </span>
+                )}
               </div>
             </div>
 
-            {/* 3. Official SGT QR Image */}
+            {/* 4. Official SGT QR Image */}
             <div className="payment-qr-wrap">
               <div className="payment-qr-frame">
                 <img
@@ -472,7 +615,7 @@ function Payment() {
               </div>
             </div>
 
-            {/* 4. UPI ID & Copy Button */}
+            {/* 5. UPI ID & Copy Button */}
             <div className="payment-upi-section">
               <div className="payment-upi-row">
                 <span className="payment-upi-label">UPI ID:</span>
@@ -487,9 +630,15 @@ function Payment() {
               </div>
             </div>
 
-            {/* 5. Instruction text */}
+            {/* 6. Instruction text */}
             <p className="payment-prompt-instruction">
-              Pay using any UPI app and upload the payment screenshot below.
+              {appliedPromo ? (
+                <>
+                  Pay discounted amount <strong>₹{effectivePrice}</strong> (₹{effectiveDiscount} OFF) using any UPI app and upload the screenshot.
+                </>
+              ) : (
+                "Pay using any UPI app and upload the payment screenshot below."
+              )}
             </p>
 
             {/* 6. Form: UTR Input, Screenshot Upload & Submit */}

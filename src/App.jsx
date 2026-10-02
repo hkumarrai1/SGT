@@ -14,6 +14,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminVerificationDetail from "./pages/AdminVerificationDetail";
 import AdminMatches from "./pages/AdminMatches";
+import AdminInfluencers from "./pages/AdminInfluencers";
 import ProfilePhoto from "./pages/ProfilePhoto";
 import Payment from "./pages/Payment";
 import Chat from "./pages/Chat";
@@ -64,6 +65,8 @@ function App() {
         <AdminDashboard />
       ) : path === "/admin/matches" ? (
         <AdminMatches />
+      ) : path === "/admin/influencers" ? (
+        <AdminInfluencers />
       ) : path.startsWith("/admin/verifications/") ? (
         <AdminVerificationDetail />
       ) : (

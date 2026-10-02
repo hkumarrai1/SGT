@@ -321,6 +321,14 @@ function AdminDashboard() {
           >
             <span>💃 Dandiya Matches & Pairs</span>
           </button>
+
+          <button
+            type="button"
+            className="admin-tab-btn"
+            onClick={() => window.location.assign("/admin/influencers")}
+          >
+            <span>🌟 Influencer Promo Codes</span>
+          </button>
         </div>
 
         {/* Loading Indicator */}

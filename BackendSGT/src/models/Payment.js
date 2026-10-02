@@ -31,6 +31,26 @@ const paymentSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    originalAmount: {
+      type: Number,
+      default: null,
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
+    promoCode: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      default: null,
+    },
+    promoCodeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PromoCode",
+      default: null,
+      index: true,
+    },
     currency: {
       type: String,
       default: "INR",
