@@ -3,11 +3,43 @@ import Profile from "../models/Profile.js";
 import User from "../models/User.js";
 import Message from "../models/Message.js";
 import MatchSession from "../models/MatchSession.js";
+import QuestionnaireResponse from "../models/QuestionnaireResponse.js";
+import { generateAnonymousAlias } from "../utils/aliasGenerator.js";
 
 function invalid(message, statusCode = 400) {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
+}
+
+function calculateCompatibility(quest1, quest2) {
+  if (!quest1 || !quest2) return 84;
+
+  const num1 = quest1.numericTraits || {};
+  const num2 = quest2.numericTraits || {};
+  const cat1 = quest1.categoricalTraits || {};
+  const cat2 = quest2.categoricalTraits || {};
+
+  const diffs = [
+    Math.abs((num1.social_energy || 0.5) - (num2.social_energy || 0.5)),
+    Math.abs((num1.social_preference || 0.5) - (num2.social_preference || 0.5)),
+    Math.abs((num1.adaptability || 0.5) - (num2.adaptability || 0.5)),
+    Math.abs((num1.adventure || 0.5) - (num2.adventure || 0.5)),
+    Math.abs((num1.dance_energy || 0.5) - (num2.dance_energy || 0.5)),
+    Math.abs((num1.group_social_energy || 0.5) - (num2.group_social_energy || 0.5)),
+  ];
+
+  const avgDiff = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+  let score = (1 - avgDiff) * 75;
+
+  if (cat1.shared_activity && cat1.shared_activity === cat2.shared_activity) {
+    score += 12;
+  }
+  if (cat1.music_style && cat1.music_style === cat2.music_style) {
+    score += 13;
+  }
+
+  return Math.min(98, Math.max(68, Math.round(score)));
 }
 
 export async function listAdminMatches({ status, search } = {}) {
@@ -291,4 +323,304 @@ export async function listSuspendedUsersAdmin() {
       academicYear: pr?.academicYear || "",
     };
   });
+}
+
+/**
+ * Lists all verified students for selection in Admin Manual Pairing
+ */
+export async function listStudentsForManualPairingAdmin({ search, gender, excludeUserId } = {}) {
+  const profileFilter = {
+    verificationStatus: "VERIFIED",
+  };
+
+  if (gender && ["female", "male"].includes(gender)) {
+    profileFilter.gender = gender;
+  }
+
+  if (excludeUserId) {
+    profileFilter.userId = { $ne: excludeUserId };
+  }
+
+  const profiles = await Profile.find(profileFilter)
+    .populate("userId", "email isBlocked")
+    .populate("institutionId", "name shortName city")
+    .sort({ fullName: 1 })
+    .lean();
+
+  const userIds = profiles.map((p) => p.userId?._id).filter(Boolean);
+
+  // Check active matches for each user
+  const activeMatches = await Match.find({
+    $or: [{ user1Id: { $in: userIds } }, { user2Id: { $in: userIds } }],
+    status: "ACTIVE",
+  }).lean();
+
+  const activeMatchUserSet = new Set();
+  activeMatches.forEach((m) => {
+    if (m.user1Id) activeMatchUserSet.add(String(m.user1Id));
+    if (m.user2Id) activeMatchUserSet.add(String(m.user2Id));
+  });
+
+  let results = profiles
+    .filter((p) => p.userId && !p.userId.isBlocked)
+    .map((p) => ({
+      _id: p._id,
+      userId: p.userId._id,
+      email: p.userId.email,
+      fullName: p.fullName || "Student",
+      anonymousAlias: p.anonymousAlias || "Festival_Vibe",
+      studentId: p.studentId || "N/A",
+      gender: p.gender || "prefer-not-to-say",
+      course: p.course || "",
+      academicYear: p.academicYear ? `Year ${p.academicYear}` : "",
+      collegeName: p.institutionId?.name || "University Campus",
+      collegeShort: p.institutionId?.shortName || p.institutionId?.name || "Campus",
+      profilePhoto: p.profilePhoto?.secureUrl || p.profilePhoto?.url || null,
+      paymentStatus: p.paymentStatus || "UNPAID",
+      activePlan: p.activePlan || "none",
+      isRevealedWithPartner: Boolean(p.revealedWithUserId),
+      hasActiveMatch: activeMatchUserSet.has(String(p.userId._id)),
+    }));
+
+  if (search && search.trim()) {
+    const q = search.trim().toLowerCase();
+    results = results.filter(
+      (s) =>
+        s.email.toLowerCase().includes(q) ||
+        s.fullName.toLowerCase().includes(q) ||
+        s.anonymousAlias.toLowerCase().includes(q) ||
+        s.studentId.toLowerCase().includes(q) ||
+        s.collegeName.toLowerCase().includes(q),
+    );
+  }
+
+  return results;
+}
+
+/**
+ * Returns eligible opposite-gender candidate partners ranked by compatibility
+ */
+export async function getCandidatePartnersAdmin(userId) {
+  const primaryProfile = await Profile.findOne({ userId })
+    .populate("userId", "email isBlocked")
+    .populate("institutionId", "name shortName city")
+    .lean();
+
+  if (!primaryProfile) throw invalid("Primary student profile not found.", 404);
+
+  const primaryGender = primaryProfile.gender;
+  let targetGender = null;
+  if (primaryGender === "female") targetGender = "male";
+  else if (primaryGender === "male") targetGender = "female";
+
+  const candidateFilter = {
+    userId: { $ne: primaryProfile.userId._id },
+    verificationStatus: "VERIFIED",
+  };
+
+  if (targetGender) {
+    candidateFilter.gender = targetGender;
+  }
+
+  const [candidatesProfiles, primaryQuest] = await Promise.all([
+    Profile.find(candidateFilter)
+      .populate("userId", "email isBlocked")
+      .populate("institutionId", "name shortName city")
+      .lean(),
+    QuestionnaireResponse.findOne({ userId }).lean(),
+  ]);
+
+  const candidateUserIds = candidatesProfiles
+    .map((c) => c.userId?._id)
+    .filter(Boolean);
+
+  const [candidatesQuests, existingMatches] = await Promise.all([
+    QuestionnaireResponse.find({ userId: { $in: candidateUserIds } }).lean(),
+    Match.find({
+      $or: [
+        { user1Id: { $in: candidateUserIds } },
+        { user2Id: { $in: candidateUserIds } },
+      ],
+      status: "ACTIVE",
+    }).lean(),
+  ]);
+
+  const questMap = new Map();
+  candidatesQuests.forEach((q) => questMap.set(String(q.userId), q));
+
+  const activeMatchUserSet = new Set();
+  existingMatches.forEach((m) => {
+    if (m.user1Id) activeMatchUserSet.add(String(m.user1Id));
+    if (m.user2Id) activeMatchUserSet.add(String(m.user2Id));
+  });
+
+  const ranked = candidatesProfiles
+    .filter((c) => c.userId && !c.userId.isBlocked)
+    .map((c) => {
+      const cQuest = questMap.get(String(c.userId._id));
+      const compatScore = calculateCompatibility(primaryQuest, cQuest);
+
+      // Extract shared tags
+      const pTags = new Set(primaryQuest?.tags || []);
+      const cTags = cQuest?.tags || [];
+      const sharedTags = cTags.filter((t) => pTags.has(t));
+
+      return {
+        _id: c._id,
+        userId: c.userId._id,
+        email: c.userId.email,
+        fullName: c.fullName || "Student",
+        anonymousAlias: c.anonymousAlias || "Festival_Vibe",
+        studentId: c.studentId || "N/A",
+        gender: c.gender || "prefer-not-to-say",
+        course: c.course || "",
+        academicYear: c.academicYear ? `Year ${c.academicYear}` : "",
+        collegeName: c.institutionId?.name || "University Campus",
+        collegeShort: c.institutionId?.shortName || c.institutionId?.name || "Campus",
+        profilePhoto: c.profilePhoto?.secureUrl || c.profilePhoto?.url || null,
+        paymentStatus: c.paymentStatus || "UNPAID",
+        activePlan: c.activePlan || "none",
+        compatibilityScore: compatScore,
+        sharedTags,
+        hasActiveMatch: activeMatchUserSet.has(String(c.userId._id)),
+        isRevealedWithPartner: Boolean(c.revealedWithUserId),
+      };
+    });
+
+  // Sort by compatibility descending
+  ranked.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
+
+  return {
+    primaryStudent: {
+      userId: primaryProfile.userId._id,
+      email: primaryProfile.userId.email,
+      fullName: primaryProfile.fullName || "Student",
+      anonymousAlias: primaryProfile.anonymousAlias || "Festival_Vibe",
+      gender: primaryProfile.gender || "prefer-not-to-say",
+      studentId: primaryProfile.studentId || "N/A",
+      collegeName: primaryProfile.institutionId?.name || "University Campus",
+      course: primaryProfile.course || "",
+      academicYear: primaryProfile.academicYear ? `Year ${primaryProfile.academicYear}` : "",
+      profilePhoto: primaryProfile.profilePhoto?.secureUrl || primaryProfile.profilePhoto?.url || null,
+      isRevealedWithPartner: Boolean(primaryProfile.revealedWithUserId),
+    },
+    targetGender,
+    candidates: ranked,
+  };
+}
+
+/**
+ * Creates or activates a manual match between two students
+ */
+export async function createManualPairAdmin({
+  user1Id,
+  user2Id,
+  instantReveal = false,
+  customHeadline = "",
+  adminId,
+} = {}) {
+  if (!user1Id || !user2Id) throw invalid("Both student IDs are required for pairing.", 400);
+  if (String(user1Id) === String(user2Id)) throw invalid("Cannot pair a student with themselves.", 400);
+
+  const [u1, u2, p1, p2, q1, q2] = await Promise.all([
+    User.findById(user1Id),
+    User.findById(user2Id),
+    Profile.findOne({ userId: user1Id }),
+    Profile.findOne({ userId: user2Id }),
+    QuestionnaireResponse.findOne({ userId: user1Id }),
+    QuestionnaireResponse.findOne({ userId: user2Id }),
+  ]);
+
+  if (!u1 || !u2) throw invalid("One or both user accounts not found.", 404);
+  if (!p1 || !p2) throw invalid("One or both student profiles not found.", 404);
+
+  if (u1.isBlocked || u2.isBlocked) {
+    throw invalid("Cannot pair a suspended user account.", 400);
+  }
+
+  // Ensure festive aliases
+  if (!p1.anonymousAlias) {
+    p1.anonymousAlias = generateAnonymousAlias();
+    await p1.save();
+  }
+  if (!p2.anonymousAlias) {
+    p2.anonymousAlias = generateAnonymousAlias();
+    await p2.save();
+  }
+
+  const compatScore = calculateCompatibility(q1, q2);
+
+  // Deactivate any existing active matches for both users
+  await Match.updateMany(
+    {
+      $or: [
+        { user1Id: { $in: [user1Id, user2Id] } },
+        { user2Id: { $in: [user1Id, user2Id] } },
+      ],
+      status: "ACTIVE",
+    },
+    { $set: { status: "DECLINED", declinedAt: new Date() } },
+  );
+
+  const matchHeadline =
+    customHeadline.trim() ||
+    `Campus Garba Connection · ${p1.course || "Campus"} & ${p2.course || "Campus"}`;
+
+  const synthesis = {
+    matchHeadline,
+    connectionNarrative: `Handcrafted Dandiya pairing curated by campus administration based on festive energy and dance vibes.`,
+    sharedVibe: "Curated Campus Dandiya Duo",
+    icebreakerPrompt: "Hey! We've been officially paired for Dandiya Night. Ready to sync beats?",
+  };
+
+  const isRevealed = Boolean(instantReveal);
+  const now = new Date();
+
+  // Create active match
+  const match = await Match.create({
+    user1Id,
+    user2Id,
+    institutionId: p1.institutionId || p2.institutionId || null,
+    status: "ACTIVE",
+    compatibilityScore: compatScore,
+    deterministicScore: compatScore,
+    synthesisScore: compatScore,
+    synthesis,
+    matchedAt: now,
+    user1Revealed: isRevealed,
+    user2Revealed: isRevealed,
+    isRevealed,
+    revealedAt: isRevealed ? now : null,
+  });
+
+  if (isRevealed) {
+    p1.revealedWithUserId = user2Id;
+    p2.revealedWithUserId = user1Id;
+    await Promise.all([p1.save(), p2.save()]);
+  }
+
+  // Set match session to MATCHED for both
+  await Promise.all([
+    MatchSession.findOneAndUpdate(
+      { userId: user1Id },
+      { status: "MATCHED", currentMatchId: match._id, attempt: 1 },
+      { upsert: true, new: true },
+    ),
+    MatchSession.findOneAndUpdate(
+      { userId: user2Id },
+      { status: "MATCHED", currentMatchId: match._id, attempt: 1 },
+      { upsert: true, new: true },
+    ),
+  ]);
+
+  return {
+    success: true,
+    message: `🎉 Successfully paired ${p1.fullName || p1.anonymousAlias} & ${p2.fullName || p2.anonymousAlias} for Dandiya!`,
+    match: {
+      _id: match._id,
+      compatibilityScore: match.compatibilityScore,
+      isRevealed: match.isRevealed,
+      matchedAt: match.matchedAt,
+    },
+  };
 }

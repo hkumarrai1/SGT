@@ -423,3 +423,392 @@
   background: #e85d43;
   color: #fff;
 }
+
+/* Manual Pair Button */
+.admin-manual-pair-btn {
+  background: linear-gradient(135deg, #e85d43, #f4c66c);
+  border: none;
+  color: #1a0820;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(232, 93, 67, 0.35);
+  transition: all 0.2s ease;
+}
+
+.admin-manual-pair-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(244, 198, 108, 0.45);
+}
+
+/* Manual Pair Studio Modal */
+.admin-manual-pair-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.75rem;
+}
+
+.admin-manual-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.85rem;
+}
+
+.admin-manual-modal-header h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+  color: #fff8f2;
+}
+
+.admin-manual-modal-header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 248, 242, 0.7);
+}
+
+.admin-modal-close-icon {
+  background: transparent;
+  border: none;
+  color: rgba(255, 248, 242, 0.6);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.admin-modal-close-icon:hover {
+  color: #fff8f2;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-manual-pair-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .admin-manual-pair-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-manual-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.admin-manual-col-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.admin-step-badge {
+  background: #f4c66c;
+  color: #1a0820;
+  font-weight: 900;
+  font-size: 0.8rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-manual-col-title h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff8f2;
+}
+
+.admin-rule-pill {
+  margin-left: auto;
+  background: rgba(244, 198, 108, 0.15);
+  border: 1px solid rgba(244, 198, 108, 0.4);
+  color: #f4c66c;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.admin-manual-search-box input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.85rem;
+  color: #fff8f2;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.admin-manual-search-box input:focus {
+  border-color: #f4c66c;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.admin-manual-student-list,
+.admin-manual-candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.admin-student-card,
+.admin-candidate-card {
+  display: flex;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-student-card:hover,
+.admin-candidate-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(244, 198, 108, 0.4);
+  transform: translateY(-1px);
+}
+
+.admin-student-card.is-selected,
+.admin-candidate-card.is-selected {
+  background: rgba(244, 198, 108, 0.15);
+  border-color: #f4c66c;
+  box-shadow: 0 0 12px rgba(244, 198, 108, 0.2);
+}
+
+.admin-student-avatar-wrap {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+
+.admin-student-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.admin-student-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e85d43, #f4c66c);
+  color: #1a0820;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.admin-student-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.admin-student-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.admin-student-name-row strong {
+  font-size: 0.85rem;
+  color: #fff8f2;
+}
+
+.admin-gender-chip {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.admin-gender-chip.female {
+  background: rgba(244, 114, 182, 0.15);
+  color: #f472b6;
+  border: 1px solid rgba(244, 114, 182, 0.4);
+}
+
+.admin-gender-chip.male {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.4);
+}
+
+.admin-gender-chip.other {
+  background: rgba(167, 139, 250, 0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(167, 139, 250, 0.4);
+}
+
+.admin-student-sub {
+  font-size: 0.75rem;
+  color: rgba(255, 248, 242, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-student-branch {
+  font-size: 0.7rem;
+  color: rgba(244, 198, 108, 0.8);
+}
+
+.admin-candidate-card {
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.admin-candidate-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.admin-candidate-user {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.admin-compat-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid;
+  background: rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.admin-candidate-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: rgba(255, 248, 242, 0.6);
+}
+
+.admin-candidate-vibes {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.admin-vibe-tag {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  color: #f4c66c;
+}
+
+.admin-manual-placeholder-notice,
+.admin-manual-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: rgba(255, 248, 242, 0.5);
+}
+
+.admin-manual-footer-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 1rem;
+}
+
+.admin-manual-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.admin-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.8rem;
+  color: rgba(255, 248, 242, 0.85);
+  cursor: pointer;
+}
+
+.admin-toggle-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #f4c66c;
+  cursor: pointer;
+}
+
+.admin-manual-custom-headline input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.85rem;
+  color: #fff8f2;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.admin-manual-custom-headline input:focus {
+  border-color: #f4c66c;
+}
+
+.admin-btn-manual-pair-submit {
+  background: linear-gradient(135deg, #e85d43, #f4c66c);
+  border: none;
+  color: #1a0820;
+  padding: 0.65rem 1.5rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-manual-pair-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-btn-manual-pair-submit:hover:not(:disabled) {
+  box-shadow: 0 4px 15px rgba(244, 198, 108, 0.4);
+  transform: translateY(-1px);
+}
+

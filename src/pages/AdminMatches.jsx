@@ -22,6 +22,20 @@ function AdminMatches() {
   const [directBlockEmail, setDirectBlockEmail] = useState("");
   const [showDirectBlockModal, setShowDirectBlockModal] = useState(false);
 
+  // Manual Pair Creator state
+  const [showManualPairModal, setShowManualPairModal] = useState(false);
+  const [student1Search, setStudent1Search] = useState("");
+  const [studentsList, setStudentsList] = useState([]);
+  const [isSearchingStudents, setIsSearchingStudents] = useState(false);
+  const [selectedStudent1, setSelectedStudent1] = useState(null);
+  const [candidatePartners, setCandidatePartners] = useState([]);
+  const [targetGender, setTargetGender] = useState(null);
+  const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [candidateFilterQuery, setCandidateFilterQuery] = useState("");
+  const [instantRevealPair, setInstantRevealPair] = useState(false);
+  const [customPairHeadline, setCustomPairHeadline] = useState("");
+
   useEffect(() => {
     if (!token) {
       window.location.assign("/admin/login");
@@ -211,6 +225,88 @@ function AdminMatches() {
     }
   };
 
+  const handleOpenManualPairModal = () => {
+    setShowManualPairModal(true);
+    setSelectedStudent1(null);
+    setSelectedCandidate(null);
+    setCandidatePartners([]);
+    setStudent1Search("");
+    setCandidateFilterQuery("");
+    setInstantRevealPair(false);
+    setCustomPairHeadline("");
+    searchStudents("");
+  };
+
+  const searchStudents = async (query = "") => {
+    setIsSearchingStudents(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/admin/matches/students?search=${encodeURIComponent(query)}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setStudentsList(data.students || []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSearchingStudents(false);
+    }
+  };
+
+  const handleSelectStudent1 = async (student) => {
+    setSelectedStudent1(student);
+    setSelectedCandidate(null);
+    setIsLoadingCandidates(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/admin/matches/candidates/${student.userId}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setCandidatePartners(data.candidates || []);
+        setTargetGender(data.targetGender);
+      }
+    } catch (err) {
+      setAlert({ type: "error", message: "Failed to load candidate partners." });
+    } finally {
+      setIsLoadingCandidates(false);
+    }
+  };
+
+  const handleExecuteManualPair = async () => {
+    if (!selectedStudent1 || !selectedCandidate) return;
+    setActionInProgress(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/matches/manual-pair`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user1Id: selectedStudent1.userId,
+          user2Id: selectedCandidate.userId,
+          instantReveal: instantRevealPair,
+          customHeadline: customPairHeadline.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to create pair.");
+
+      setAlert({ type: "success", message: data.message });
+      setShowManualPairModal(false);
+      loadMatches();
+    } catch (err) {
+      setAlert({ type: "error", message: err.message });
+    } finally {
+      setActionInProgress(false);
+    }
+  };
+
   // Filtered matches
   const filteredMatches = useMemo(() => {
     return matches.filter((m) => {
@@ -292,10 +388,17 @@ function AdminMatches() {
           <div className="admin-topbar-actions">
             <button
               type="button"
+              className="admin-manual-pair-btn"
+              onClick={handleOpenManualPairModal}
+            >
+              ⚡ Create Manual Dandiya Pair
+            </button>
+            <button
+              type="button"
               className="admin-block-btn"
               onClick={() => setShowDirectBlockModal(true)}
             >
-              🚫 Block User by Email
+              🛡️ Manage Access
             </button>
             <button
               type="button"
@@ -909,6 +1012,264 @@ function AdminMatches() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================================
+          MODAL 5: MANUAL DANDIYA PAIR CREATOR WIZARD
+          ========================================================== */}
+      {showManualPairModal && (
+        <div
+          className="admin-modal-backdrop"
+          onClick={() => !actionInProgress && setShowManualPairModal(false)}
+        >
+          <div
+            className="admin-modal admin-manual-pair-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "920px", width: "95%" }}
+          >
+            <div className="admin-manual-modal-header">
+              <div>
+                <h3>⚡ Dandiya Matchmaker: Manual Pairing Studio</h3>
+                <p>
+                  Manually pair any two students. Gender complementarity (Girl ↔ Boy) and compatibility scores are automatically enforced.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="admin-modal-close-icon"
+                onClick={() => !actionInProgress && setShowManualPairModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="admin-manual-pair-grid">
+              {/* LEFT COLUMN: SELECT STUDENT 1 */}
+              <div className="admin-manual-col">
+                <div className="admin-manual-col-title">
+                  <span className="admin-step-badge">1</span>
+                  <h4>Select First Student</h4>
+                </div>
+
+                <div className="admin-manual-search-box">
+                  <input
+                    type="text"
+                    placeholder="Search by name, email, or roll..."
+                    value={student1Search}
+                    onChange={(e) => {
+                      setStudent1Search(e.target.value);
+                      searchStudents(e.target.value);
+                    }}
+                  />
+                </div>
+
+                <div className="admin-manual-student-list">
+                  {isSearchingStudents ? (
+                    <div className="admin-manual-empty">Searching students...</div>
+                  ) : studentsList.length === 0 ? (
+                    <div className="admin-manual-empty">No verified students found.</div>
+                  ) : (
+                    studentsList.map((st) => {
+                      const isSelected = selectedStudent1?.userId === st.userId;
+                      return (
+                        <div
+                          key={st.userId}
+                          className={`admin-student-card ${isSelected ? "is-selected" : ""}`}
+                          onClick={() => handleSelectStudent1(st)}
+                        >
+                          <div className="admin-student-avatar-wrap">
+                            {st.avatarUrl ? (
+                              <img src={st.avatarUrl} alt="" className="admin-student-avatar" />
+                            ) : (
+                              <div className="admin-student-avatar-placeholder">
+                                {st.fullName?.[0] || "?"}
+                              </div>
+                            )}
+                          </div>
+                          <div className="admin-student-info">
+                            <div className="admin-student-name-row">
+                              <strong>{st.fullName}</strong>
+                              <span className={`admin-gender-chip ${st.gender}`}>
+                                {st.gender === "female" ? "🌸 Girl" : st.gender === "male" ? "⚡ Boy" : "✨ Other"}
+                              </span>
+                            </div>
+                            <div className="admin-student-sub">
+                              <span>{st.email}</span>
+                              {st.studentId && <span>• ID: {st.studentId}</span>}
+                            </div>
+                            <div className="admin-student-branch">
+                              {st.branch || "Campus"} {st.year ? `• Year ${st.year}` : ""}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: SELECT CANDIDATE PARTNER */}
+              <div className="admin-manual-col">
+                <div className="admin-manual-col-title">
+                  <span className="admin-step-badge">2</span>
+                  <h4>Select Dandiya Partner</h4>
+                  {targetGender && (
+                    <span className="admin-rule-pill">
+                      Rule: {targetGender === "male" ? "Must be Boy ⚡" : "Must be Girl 🌸"}
+                    </span>
+                  )}
+                </div>
+
+                {!selectedStudent1 ? (
+                  <div className="admin-manual-placeholder-notice">
+                    👈 Please select a student on the left to discover eligible Dandiya partners.
+                  </div>
+                ) : isLoadingCandidates ? (
+                  <div className="admin-manual-empty">Calculating SGT compatibility scores...</div>
+                ) : candidatePartners.length === 0 ? (
+                  <div className="admin-manual-empty">
+                    No eligible {targetGender === "male" ? "male" : "female"} candidate found for this student.
+                  </div>
+                ) : (
+                  <>
+                    <div className="admin-manual-search-box">
+                      <input
+                        type="text"
+                        placeholder={`Filter ${candidatePartners.length} eligible candidates...`}
+                        value={candidateFilterQuery}
+                        onChange={(e) => setCandidateFilterQuery(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="admin-manual-candidate-list">
+                      {candidatePartners
+                        .filter((c) => {
+                          if (!candidateFilterQuery.trim()) return true;
+                          const q = candidateFilterQuery.toLowerCase();
+                          return (
+                            (c.fullName || "").toLowerCase().includes(q) ||
+                            (c.email || "").toLowerCase().includes(q) ||
+                            (c.branch || "").toLowerCase().includes(q)
+                          );
+                        })
+                        .map((cand) => {
+                          const isSelected = selectedCandidate?.userId === cand.userId;
+                          const scoreColor =
+                            cand.compatibilityScore >= 80
+                              ? "#4ade80"
+                              : cand.compatibilityScore >= 60
+                              ? "#fbbf24"
+                              : "#f87171";
+
+                          return (
+                            <div
+                              key={cand.userId}
+                              className={`admin-candidate-card ${isSelected ? "is-selected" : ""}`}
+                              onClick={() => setSelectedCandidate(cand)}
+                            >
+                              <div className="admin-candidate-top">
+                                <div className="admin-candidate-user">
+                                  <div className="admin-student-avatar-wrap">
+                                    {cand.avatarUrl ? (
+                                      <img src={cand.avatarUrl} alt="" className="admin-student-avatar" />
+                                    ) : (
+                                      <div className="admin-student-avatar-placeholder">
+                                        {cand.fullName?.[0] || "?"}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <div className="admin-student-name-row">
+                                      <strong>{cand.fullName}</strong>
+                                      <span className={`admin-gender-chip ${cand.gender}`}>
+                                        {cand.gender === "female" ? "🌸 Girl" : "⚡ Boy"}
+                                      </span>
+                                    </div>
+                                    <div className="admin-student-sub">{cand.email}</div>
+                                  </div>
+                                </div>
+
+                                <div
+                                  className="admin-compat-badge"
+                                  style={{ borderColor: scoreColor, color: scoreColor }}
+                                >
+                                  {cand.compatibilityScore}% Match
+                                </div>
+                              </div>
+
+                              <div className="admin-candidate-details">
+                                <div className="admin-candidate-meta">
+                                  <span>{cand.branch || "Campus"} {cand.year ? `• Year ${cand.year}` : ""}</span>
+                                  {cand.instagramHandle && <span>• @{cand.instagramHandle}</span>}
+                                </div>
+                                {cand.vibes && cand.vibes.length > 0 && (
+                                  <div className="admin-candidate-vibes">
+                                    {cand.vibes.slice(0, 3).map((v, vi) => (
+                                      <span key={vi} className="admin-vibe-tag">
+                                        #{v}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* STEP 3 & ACTIONS */}
+            <div className="admin-manual-footer-controls">
+              <div className="admin-manual-options">
+                <label className="admin-toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={instantRevealPair}
+                    onChange={(e) => setInstantRevealPair(e.target.checked)}
+                  />
+                  <span>
+                    <strong>Instant Mutual Reveal:</strong> Unlock full real names, avatars & Instagram handles immediately (bypasses anonymous chat reveal).
+                  </span>
+                </label>
+
+                <div className="admin-manual-custom-headline">
+                  <input
+                    type="text"
+                    placeholder="Optional pairing note/headline (e.g., 'Curated Dandiya Duo ⭐')..."
+                    value={customPairHeadline}
+                    onChange={(e) => setCustomPairHeadline(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="admin-modal-actions">
+                <button
+                  type="button"
+                  className="admin-modal-btn-cancel"
+                  onClick={() => setShowManualPairModal(false)}
+                  disabled={actionInProgress}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="admin-btn-manual-pair-submit"
+                  disabled={!selectedStudent1 || !selectedCandidate || actionInProgress}
+                  onClick={handleExecuteManualPair}
+                >
+                  {actionInProgress ? (
+                    "Pairing..."
+                  ) : (
+                    `⚡ Confirm & Pair ${selectedStudent1?.fullName ? selectedStudent1.fullName.split(" ")[0] : "Student 1"} + ${selectedCandidate?.fullName ? selectedCandidate.fullName.split(" ")[0] : "Student 2"}`
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

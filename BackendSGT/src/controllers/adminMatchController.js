@@ -7,6 +7,9 @@ import {
   blockUserByEmailAdmin,
   unblockUserByEmailAdmin,
   listSuspendedUsersAdmin,
+  listStudentsForManualPairingAdmin,
+  getCandidatePartnersAdmin,
+  createManualPairAdmin,
 } from "../services/adminMatchService.js";
 
 export async function listMatches(req, res) {
@@ -16,6 +19,39 @@ export async function listMatches(req, res) {
     success: true,
     matches,
   });
+}
+
+export async function listStudentsForManualPair(req, res) {
+  const { search, gender, excludeUserId } = req.query;
+  const students = await listStudentsForManualPairingAdmin({
+    search,
+    gender,
+    excludeUserId,
+  });
+  return res.json({
+    success: true,
+    students,
+  });
+}
+
+export async function getCandidatePartners(req, res) {
+  const result = await getCandidatePartnersAdmin(req.params.userId);
+  return res.json({
+    success: true,
+    ...result,
+  });
+}
+
+export async function createManualPair(req, res) {
+  const { user1Id, user2Id, instantReveal, customHeadline } = req.body || {};
+  const result = await createManualPairAdmin({
+    user1Id,
+    user2Id,
+    instantReveal,
+    customHeadline,
+    adminId: req.admin.id,
+  });
+  return res.json(result);
 }
 
 export async function nullifyMatch(req, res) {
