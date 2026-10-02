@@ -55,9 +55,9 @@ const promoCodeSchema = new mongoose.Schema(
       default: "",
     },
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Admin",
-      default: null,
+      type: String,
+      trim: true,
+      default: "admin",
     },
   },
   { timestamps: true, versionKey: false },

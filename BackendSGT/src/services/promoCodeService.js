@@ -184,7 +184,7 @@ export async function createInfluencerPromoAdmin({
     discount499: Number(discount499) || 150,
     discount999: Number(discount999) || 250,
     notes: notes?.trim() || "",
-    createdBy: adminId || null,
+    createdBy: adminId ? String(adminId) : "admin",
     isActive: true,
   });
 
