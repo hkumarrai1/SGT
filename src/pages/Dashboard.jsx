@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../store";
 import Background from "../components/Background/Background";
 import Loader from "../components/Loader/Loader";
@@ -85,6 +85,71 @@ function Dashboard() {
   const [isMatching, setIsMatching] = useState(false);
   const [scannerStep, setScannerStep] = useState(0);
   const [matchAlert, setMatchAlert] = useState({ type: "", message: "" });
+
+  // Profile Photo Change state
+  const photoInputRef = useRef(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoAlert, setPhotoAlert] = useState({ type: "", message: "" });
+
+  const handleProfilePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const acceptedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+    if (!acceptedTypes.has(file.type)) {
+      setPhotoAlert({
+        type: "error",
+        message: "Please choose a JPG, PNG, or WebP photo.",
+      });
+      setTimeout(() => setPhotoAlert({ type: "", message: "" }), 4000);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setPhotoAlert({
+        type: "error",
+        message: "Profile photo must be 5 MB or smaller.",
+      });
+      setTimeout(() => setPhotoAlert({ type: "", message: "" }), 4000);
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    setPhotoAlert({ type: "info", message: "Uploading your new profile photo..." });
+
+    try {
+      const formData = new FormData();
+      formData.append("photo", file);
+
+      const response = await fetch(`${API_URL}/api/profile/photo`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update profile photo.");
+      }
+
+      setProfilePhoto(data.profilePhoto);
+      setImgError(false);
+      setPhotoAlert({
+        type: "success",
+        message: "✨ Profile picture updated successfully!",
+      });
+      setTimeout(() => setPhotoAlert({ type: "", message: "" }), 4000);
+    } catch (err) {
+      setPhotoAlert({
+        type: "error",
+        message: err.message || "Error uploading profile picture. Please try again.",
+      });
+      setTimeout(() => setPhotoAlert({ type: "", message: "" }), 5000);
+    } finally {
+      setIsUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    }
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -439,26 +504,113 @@ function Dashboard() {
 
       {/* Main Dashboard Content */}
       <div className="dashboard-shell">
+        {/* Photo Upload Alert Banner */}
+        {photoAlert.message && (
+          <div
+            className={`dashboard-photo-alert ${photoAlert.type}`}
+            style={{
+              padding: "0.85rem 1.25rem",
+              borderRadius: "14px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              background:
+                photoAlert.type === "success"
+                  ? "rgba(46, 204, 113, 0.15)"
+                  : photoAlert.type === "error"
+                  ? "rgba(232, 93, 67, 0.15)"
+                  : "rgba(244, 198, 108, 0.15)",
+              border:
+                photoAlert.type === "success"
+                  ? "1px solid rgba(46, 204, 113, 0.4)"
+                  : photoAlert.type === "error"
+                  ? "1px solid rgba(232, 93, 67, 0.4)"
+                  : "1px solid rgba(244, 198, 108, 0.4)",
+              color:
+                photoAlert.type === "success"
+                  ? "#72e9a5"
+                  : photoAlert.type === "error"
+                  ? "#ff9d8b"
+                  : "#f4c66c",
+              fontSize: "0.92rem",
+              fontWeight: 600,
+            }}
+          >
+            <span>{photoAlert.message}</span>
+            <button
+              type="button"
+              onClick={() => setPhotoAlert({ type: "", message: "" })}
+              style={{
+                background: "none",
+                border: "none",
+                color: "inherit",
+                cursor: "pointer",
+                fontSize: "1rem",
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* ==========================================================
             1. TOP HERO / PROFILE SECTION
             ========================================================== */}
         <section className="dashboard-hero" aria-label="Your Profile Hero">
           <div className="dashboard-hero-avatar-wrap">
-            {photoUrl ? (
-              <img
-                className="dashboard-hero-avatar"
-                src={photoUrl}
-                alt={`Profile photo of ${fullName}`}
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <div className="dashboard-hero-avatar-initials" aria-hidden="true">
-                {initials}
+            <div
+              className="dashboard-hero-avatar-inner"
+              onClick={() => !isUploadingPhoto && photoInputRef.current?.click()}
+              title="Click to change your profile picture"
+            >
+              {photoUrl ? (
+                <img
+                  className="dashboard-hero-avatar"
+                  src={photoUrl}
+                  alt={`Profile photo of ${fullName}`}
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <div className="dashboard-hero-avatar-initials" aria-hidden="true">
+                  {initials}
+                </div>
+              )}
+
+              {/* Hover / Overlay on Avatar */}
+              <div className="dashboard-avatar-overlay">
+                <span>📷 Change</span>
               </div>
-            )}
+
+              {/* Uploading Spinner */}
+              {isUploadingPhoto && (
+                <div className="dashboard-avatar-uploading-overlay">
+                  <span className="dashboard-avatar-spinner" />
+                </div>
+              )}
+            </div>
+
+            {/* Quick Edit Camera Button */}
+            <button
+              type="button"
+              className="dashboard-avatar-edit-btn"
+              onClick={() => !isUploadingPhoto && photoInputRef.current?.click()}
+              title="Change Profile Picture"
+              aria-label="Change Profile Picture"
+            >
+              📷
+            </button>
+
             <div className="dashboard-hero-badge" title="Verified Campus Student">
               ✓
             </div>
+
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: "none" }}
+              onChange={handleProfilePhotoChange}
+            />
           </div>
 
           <div className="dashboard-hero-body">

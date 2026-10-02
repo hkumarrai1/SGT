@@ -146,6 +146,20 @@
 
 .dashboard-hero-avatar-wrap {
   position: relative;
+  display: inline-flex;
+}
+
+.dashboard-hero-avatar-inner {
+  position: relative;
+  border-radius: 50%;
+  cursor: pointer;
+  overflow: hidden;
+  display: inline-flex;
+  transition: transform 0.2s ease;
+}
+
+.dashboard-hero-avatar-inner:hover {
+  transform: scale(1.03);
 }
 
 .dashboard-hero-avatar {
@@ -173,6 +187,80 @@
   box-shadow: 0 8px 30px rgba(244, 198, 108, 0.25);
 }
 
+/* Hover Overlay on Avatar */
+.dashboard-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(14, 5, 22, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f4c66c;
+  font-size: 0.82rem;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+}
+
+.dashboard-hero-avatar-inner:hover .dashboard-avatar-overlay {
+  opacity: 1;
+}
+
+/* Uploading Spinner Overlay */
+.dashboard-avatar-uploading-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(14, 5, 22, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.dashboard-avatar-spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid rgba(244, 198, 108, 0.3);
+  border-top-color: #f4c66c;
+  border-radius: 50%;
+  animation: dashboardPhotoSpin 0.8s linear infinite;
+}
+
+@keyframes dashboardPhotoSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Quick Edit Camera Button */
+.dashboard-avatar-edit-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: #f4c66c;
+  color: #1a0820;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  border: 2px solid #1c081f;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+  z-index: 6;
+}
+
+.dashboard-avatar-edit-btn:hover {
+  transform: scale(1.15);
+  background: #fff;
+}
+
 .dashboard-hero-badge {
   position: absolute;
   bottom: 0;
@@ -188,6 +276,7 @@
   font-size: 1rem;
   border: 2px solid #1c081f;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 4;
 }
 
 .dashboard-hero-body {
