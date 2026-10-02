@@ -43,9 +43,6 @@ function AdminOfferCodes() {
   const [conversionsModalData, setConversionsModalData] = useState(null);
   const [isLoadingConversions, setIsLoadingConversions] = useState(false);
 
-  // Modal 3: View Screenshot
-  const [viewScreenshotUrl, setViewScreenshotUrl] = useState(null);
-
   useEffect(() => {
     if (!token) {
       window.location.assign("/admin/login");
@@ -111,7 +108,6 @@ function AdminOfferCodes() {
         setCodeName(data.code);
       }
     } catch (err) {
-      // Fallback generator
       const cleanTitle = (title.trim() || "SGT").slice(0, 5).toUpperCase().replace(/[^A-Z0-9]/g, "");
       setCodeName(`${cleanTitle || "SGT"}${discountPercentage || 50}`);
     } finally {
@@ -294,16 +290,15 @@ function AdminOfferCodes() {
       <Background />
       <div className="admin-shell">
         {/* Top Header */}
-        <header className="admin-header">
-          <div className="admin-header-brand">
-            <span className="admin-kicker">SGT CONTROL PANEL</span>
-            <h1>Offer Code Hub</h1>
-            <p className="admin-subtitle">
+        <div className="admin-topbar">
+          <div className="admin-topbar-left">
+            <h1>Offer Codes &amp; Discounts <em>Hub</em></h1>
+            <p>
               Configure discount codes up to 100% OFF, set maximum usage limits, and monitor redemptions.
             </p>
           </div>
 
-          <div className="admin-header-actions">
+          <div className="admin-topbar-actions">
             <button
               type="button"
               className="admin-refresh-btn"
@@ -323,30 +318,34 @@ function AdminOfferCodes() {
               Log out ✕
             </button>
           </div>
-        </header>
+        </div>
 
-        {/* Global Toast Alert */}
+        {/* Global Alert Notification */}
         {alert.message && (
           <div
+            className={`admin-alert ${alert.type}`}
             style={{
-              padding: "0.85rem 1.25rem",
+              padding: "1rem 1.25rem",
               borderRadius: "12px",
               background:
-                alert.type === "error"
-                  ? "rgba(232, 93, 67, 0.2)"
-                  : "rgba(46, 204, 113, 0.2)",
-              border: `1px solid ${
-                alert.type === "error" ? "rgba(232, 93, 67, 0.5)" : "rgba(46, 204, 113, 0.5)"
-              }`,
-              color: alert.type === "error" ? "#ff9d8b" : "#72e9a5",
+                alert.type === "success"
+                  ? "rgba(74, 222, 128, 0.15)"
+                  : "rgba(248, 113, 113, 0.15)",
+              border:
+                alert.type === "success"
+                  ? "1px solid rgba(74, 222, 128, 0.4)"
+                  : "1px solid rgba(248, 113, 113, 0.4)",
+              color: alert.type === "success" ? "#4ade80" : "#f87171",
+              fontSize: "0.95rem",
+              fontWeight: "600",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: "1rem",
             }}
           >
             <span>{alert.message}</span>
             <button
+              type="button"
               style={{
                 background: "none",
                 border: "none",
@@ -361,342 +360,292 @@ function AdminOfferCodes() {
           </div>
         )}
 
-        {/* Navigation Tabs */}
-        <div className="admin-tabs">
+        {/* Global Navigation Tabs */}
+        <nav className="admin-tabs" aria-label="Admin Navigation Tabs">
           <button
             type="button"
             className="admin-tab-btn"
-            onClick={() => window.location.assign("/admin/dashboard")}
+            onClick={() => window.location.assign("/admin/dashboard?tab=verifications")}
           >
-            <span>💳 Payment Proofs</span>
+            🪪 ID Verifications
           </button>
-
           <button
             type="button"
             className="admin-tab-btn"
-            onClick={() => window.location.assign("/admin/dashboard")}
+            onClick={() => window.location.assign("/admin/dashboard?tab=payments")}
           >
-            <span>🎓 Verifications</span>
+            💳 QR Payments
           </button>
-
           <button
             type="button"
             className="admin-tab-btn"
             onClick={() => window.location.assign("/admin/matches")}
           >
-            <span>✨ Dandiya Matchmaker</span>
+            ✨ Dandiya Matchmaker
           </button>
-
           <button
             type="button"
             className="admin-tab-btn is-active"
-            onClick={() => {}}
           >
-            <span>🎟️ Offer Codes</span>
+            🎟️ Offer Codes
+            <span className="admin-tab-count">{summary.totalUses} Claimed</span>
           </button>
-
           <button
             type="button"
             className="admin-tab-btn"
             onClick={() => window.location.assign("/admin/influencers")}
           >
-            <span>🌟 Influencer Promos</span>
+            🌟 Influencer Promos
           </button>
+        </nav>
+
+        {/* 4 Metrics Stats Cards */}
+        <div className="admin-match-stats-grid">
+          <div className="admin-stat-card gold">
+            <span className="admin-stat-label">🎟️ Total Offer Codes</span>
+            <strong className="admin-stat-val">{summary.totalOfferCodes}</strong>
+            <span className="admin-stat-sub">{summary.activeOfferCodes} active campaigns</span>
+          </div>
+
+          <div className="admin-stat-card purple">
+            <span className="admin-stat-label">👥 Total Redemptions</span>
+            <strong className="admin-stat-val">{summary.totalUses}</strong>
+            <span className="admin-stat-sub">Student passes claimed</span>
+          </div>
+
+          <div className="admin-stat-card green-accent">
+            <span className="admin-stat-label">💰 Revenue Generated</span>
+            <strong className="admin-stat-val">₹{summary.totalRevenue.toLocaleString()}</strong>
+            <span className="admin-stat-sub">Net revenue from offer passes</span>
+          </div>
+
+          <div className="admin-stat-card red">
+            <span className="admin-stat-label">🏷️ Student Discounts Given</span>
+            <strong className="admin-stat-val">₹{summary.totalDiscountGiven.toLocaleString()}</strong>
+            <span className="admin-stat-sub">Total savings unlocked</span>
+          </div>
         </div>
 
-        {/* Summary Metrics Cards */}
-        <section className="admin-metrics-grid">
-          <div className="admin-metric-card">
-            <span className="admin-metric-label">Total Offer Codes</span>
-            <strong className="admin-metric-val">{summary.totalOfferCodes || 0}</strong>
-            <small className="admin-metric-sub">
-              {summary.activeOfferCodes || 0} active codes
-            </small>
+        {/* Toolbar: Filters & Search */}
+        <div className="admin-toolbar">
+          <div className="admin-filter-group">
+            <button
+              type="button"
+              className={`admin-filter-chip ${statusFilter === "ALL" ? "is-active" : ""}`}
+              onClick={() => setStatusFilter("ALL")}
+            >
+              All Offer Codes ({offerCodes.length})
+            </button>
+            <button
+              type="button"
+              className={`admin-filter-chip ${statusFilter === "ACTIVE" ? "is-active" : ""}`}
+              onClick={() => setStatusFilter("ACTIVE")}
+            >
+              Active ({offerCodes.filter((o) => o.isActive && !o.isExhausted).length})
+            </button>
+            <button
+              type="button"
+              className={`admin-filter-chip ${statusFilter === "EXHAUSTED" ? "is-active" : ""}`}
+              onClick={() => setStatusFilter("EXHAUSTED")}
+            >
+              Limit Reached ({offerCodes.filter((o) => o.isExhausted).length})
+            </button>
+            <button
+              type="button"
+              className={`admin-filter-chip ${statusFilter === "INACTIVE" ? "is-active" : ""}`}
+              onClick={() => setStatusFilter("INACTIVE")}
+            >
+              Inactive ({offerCodes.filter((o) => !o.isActive).length})
+            </button>
           </div>
 
-          <div className="admin-metric-card" style={{ borderColor: "rgba(244, 198, 108, 0.4)" }}>
-            <span className="admin-metric-label">Total Redemptions</span>
-            <strong className="admin-metric-val" style={{ color: "#f4c66c" }}>
-              {summary.totalUses || 0}
-            </strong>
-            <small className="admin-metric-sub">Student passes claimed</small>
-          </div>
-
-          <div className="admin-metric-card" style={{ borderColor: "rgba(237, 112, 157, 0.4)" }}>
-            <span className="admin-metric-label">Discounts Granted</span>
-            <strong className="admin-metric-val" style={{ color: "#ed709d" }}>
-              ₹{summary.totalDiscountGiven || 0}
-            </strong>
-            <small className="admin-metric-sub">Total savings provided</small>
-          </div>
-
-          <div className="admin-metric-card" style={{ borderColor: "rgba(46, 204, 113, 0.4)" }}>
-            <span className="admin-metric-label">Revenue Driven</span>
-            <strong className="admin-metric-val" style={{ color: "#2ecc71" }}>
-              ₹{summary.totalRevenue || 0}
-            </strong>
-            <small className="admin-metric-sub">Net revenue from offer codes</small>
-          </div>
-        </section>
-
-        {/* Action Bar */}
-        <section className="inf-action-bar">
-          <div className="inf-search-wrap">
+          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
             <input
               type="text"
-              className="inf-search-input"
+              className="admin-search-input"
               placeholder="Search by code or title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            {searchQuery && (
-              <button
-                type="button"
-                className="inf-clear-search"
-                onClick={() => setSearchQuery("")}
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          <div className="inf-filters">
-            <div className="inf-filter-group">
-              <button
-                type="button"
-                className={`inf-filter-btn ${statusFilter === "ALL" ? "is-active" : ""}`}
-                onClick={() => setStatusFilter("ALL")}
-              >
-                All ({offerCodes.length})
-              </button>
-              <button
-                type="button"
-                className={`inf-filter-btn ${statusFilter === "ACTIVE" ? "is-active" : ""}`}
-                onClick={() => setStatusFilter("ACTIVE")}
-              >
-                Active ({offerCodes.filter((o) => o.isActive && !o.isExhausted).length})
-              </button>
-              <button
-                type="button"
-                className={`inf-filter-btn ${statusFilter === "EXHAUSTED" ? "is-active" : ""}`}
-                onClick={() => setStatusFilter("EXHAUSTED")}
-              >
-                Exhausted ({offerCodes.filter((o) => o.isExhausted).length})
-              </button>
-              <button
-                type="button"
-                className={`inf-filter-btn ${statusFilter === "INACTIVE" ? "is-active" : ""}`}
-                onClick={() => setStatusFilter("INACTIVE")}
-              >
-                Inactive ({offerCodes.filter((o) => !o.isActive).length})
-              </button>
-            </div>
-
             <button
               type="button"
-              className="inf-add-btn"
+              className="admin-btn-add-influencer"
               onClick={() => setShowAddModal(true)}
             >
               + Create Offer Code
             </button>
           </div>
-        </section>
+        </div>
 
-        {/* Offer Codes Table */}
-        <section className="inf-table-wrap">
-          {isLoading ? (
-            <div className="inf-loading-wrap">
-              <Loader label="Loading offer codes..." />
-            </div>
-          ) : filteredOfferCodes.length === 0 ? (
-            <div className="inf-empty-state">
-              <span className="inf-empty-icon">🎟️</span>
-              <h3>No Offer Codes Found</h3>
-              <p>
-                {searchQuery || statusFilter !== "ALL"
-                  ? "No offer codes match your active filters."
-                  : "Click '+ Create Offer Code' above to create custom discount codes with usage limits."}
-              </p>
-            </div>
-          ) : (
-            <table className="inf-table">
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Title / Campaign</th>
-                  <th>Discount</th>
-                  <th>Usage / Redemptions</th>
-                  <th>Applicable Plan</th>
-                  <th>Status</th>
-                  <th>Revenue Driven</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOfferCodes.map((item) => {
-                  const usagePercent = item.maxUses > 0
-                    ? Math.min(100, Math.round((item.totalUses / item.maxUses) * 100))
-                    : 0;
+        {/* Offer Cards Grid */}
+        {isLoading ? (
+          <div style={{ padding: "4rem 0", display: "grid", placeItems: "center" }}>
+            <Loader label="Loading offer codes..." />
+          </div>
+        ) : filteredOfferCodes.length === 0 ? (
+          <div className="admin-empty-state">
+            <span style={{ fontSize: "2.5rem" }}>🎟️</span>
+            <h3>No Offer Codes Found</h3>
+            <p>
+              {searchQuery || statusFilter !== "ALL"
+                ? "No offer codes match your active search or filters."
+                : "Click '+ Create Offer Code' above to create custom discount codes with usage limits."}
+            </p>
+          </div>
+        ) : (
+          <div className="admin-offers-grid">
+            {filteredOfferCodes.map((item) => {
+              const usagePercent = item.maxUses > 0
+                ? Math.min(100, Math.round((item.totalUses / item.maxUses) * 100))
+                : 0;
 
-                  return (
-                    <tr key={item.id}>
-                      {/* Code */}
-                      <td>
-                        <div className="inf-code-pill-wrap">
-                          <span className="inf-code-pill">{item.code}</span>
-                          <button
-                            type="button"
-                            className="inf-copy-btn"
-                            title="Copy code"
-                            onClick={() => handleCopyCode(item.code)}
-                          >
-                            {copiedCode === item.code ? "Copied! ✓" : "Copy"}
-                          </button>
-                        </div>
-                      </td>
+              return (
+                <div
+                  key={item.id}
+                  className={`admin-offer-card ${!item.isActive ? "is-inactive" : ""} ${
+                    item.isExhausted ? "is-exhausted" : ""
+                  }`}
+                >
+                  {/* Header */}
+                  <div className="admin-offer-header">
+                    <div>
+                      <h3 className="admin-offer-title">{item.title}</h3>
+                      {item.notes && <p className="admin-offer-notes">{item.notes}</p>}
+                    </div>
 
-                      {/* Title */}
-                      <td>
-                        <div className="inf-name-cell">
-                          <strong>{item.title}</strong>
-                          {item.notes && <small className="inf-email">{item.notes}</small>}
-                        </div>
-                      </td>
+                    <button
+                      type="button"
+                      className={`admin-inf-status-badge ${
+                        item.isActive ? "active" : "inactive"
+                      }`}
+                      style={{ border: "none", cursor: "pointer" }}
+                      onClick={() => handleToggleStatus(item.id, item.isActive)}
+                      title="Click to toggle status"
+                    >
+                      {item.isActive ? "● Active" : "○ Inactive"}
+                    </button>
+                  </div>
 
-                      {/* Discount Badge */}
-                      <td>
-                        {item.discountType === "PERCENTAGE" ? (
-                          item.discountPercentage === 100 ? (
-                            <span className="offer-type-badge offer-type-badge--free">
-                              🎉 100% FREE PASS
-                            </span>
-                          ) : (
-                            <span className="offer-type-badge offer-type-badge--pct">
-                              ⚡ {item.discountPercentage}% OFF
-                            </span>
-                          )
-                        ) : (
-                          <span className="offer-type-badge offer-type-badge--flat">
-                            ₹{item.discount499} / ₹{item.discount999} OFF
-                          </span>
-                        )}
-                      </td>
+                  {/* Promo Code Box */}
+                  <div className="admin-offer-code-box">
+                    <span className="admin-offer-code-pill">{item.code}</span>
+                    <button
+                      type="button"
+                      className="admin-offer-copy-btn"
+                      onClick={() => handleCopyCode(item.code)}
+                    >
+                      {copiedCode === item.code ? "Copied! ✓" : "Copy Code"}
+                    </button>
+                  </div>
 
-                      {/* Usage / Progress Bar */}
-                      <td>
-                        <div className="offer-usage-cell">
-                          <div className="offer-usage-text">
-                            {item.maxUses > 0 ? (
-                              <>
-                                <span>
-                                  <strong>{item.totalUses}</strong> / {item.maxUses} used
-                                </span>
-                                <span>{usagePercent}%</span>
-                              </>
-                            ) : (
-                              <>
-                                <span><strong>{item.totalUses}</strong> uses</span>
-                                <span className="offer-tag-unlimited">∞ Unlimited</span>
-                              </>
-                            )}
-                          </div>
-                          {item.maxUses > 0 && (
-                            <div className="offer-usage-track">
-                              <div
-                                className={`offer-usage-fill ${item.isExhausted ? "offer-usage-fill--full" : ""}`}
-                                style={{ width: `${usagePercent}%` }}
-                              />
-                            </div>
-                          )}
-                          {item.isExhausted && (
-                            <span className="offer-tag-exhausted">🔴 Limit Reached</span>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Plan Scope */}
-                      <td>
-                        <span style={{ fontSize: "0.8rem", textTransform: "capitalize", color: "#f4c66c" }}>
-                          {item.applicablePlans === "all"
-                            ? "All Plans (499 & 999)"
-                            : item.applicablePlans === "vibe"
-                            ? "Vibe Pass (₹499)"
-                            : "Premium Pass (₹999)"}
+                  {/* Badges: Discount & Scope */}
+                  <div className="admin-offer-badges">
+                    {item.discountType === "PERCENTAGE" ? (
+                      item.discountPercentage === 100 ? (
+                        <span className="offer-badge offer-badge--free">
+                          🎉 100% FREE PASS
                         </span>
-                      </td>
+                      ) : (
+                        <span className="offer-badge offer-badge--pct">
+                          ⚡ {item.discountPercentage}% OFF
+                        </span>
+                      )
+                    ) : (
+                      <span className="offer-badge offer-badge--flat">
+                        🏷️ ₹{item.discount499} / ₹{item.discount999} OFF
+                      </span>
+                    )}
 
-                      {/* Status */}
-                      <td>
-                        <button
-                          type="button"
-                          className={`inf-status-badge ${
-                            item.isActive ? "is-active" : "is-inactive"
-                          }`}
-                          onClick={() => handleToggleStatus(item.id, item.isActive)}
-                          disabled={actionInProgress}
-                          title="Click to toggle status"
-                        >
-                          {item.isActive ? "● Active" : "○ Inactive"}
-                        </button>
-                      </td>
+                    <span className="offer-badge offer-badge--scope">
+                      {item.applicablePlans === "all"
+                        ? "All Plans"
+                        : item.applicablePlans === "vibe"
+                        ? "Vibe (₹499)"
+                        : "Premium (₹999)"}
+                    </span>
+                  </div>
 
-                      {/* Revenue */}
-                      <td>
-                        <div className="inf-conversions-cell">
-                          <span className="inf-conv-rev">₹{item.totalRevenue}</span>
-                          <small className="inf-conv-disc">₹{item.totalDiscountGiven} saved</small>
-                        </div>
-                      </td>
+                  {/* Usage Progress */}
+                  <div className="admin-offer-usage">
+                    <div className="admin-offer-usage-header">
+                      <span>
+                        Redemptions: <strong>{item.totalUses}</strong>
+                        {item.maxUses > 0 ? ` / ${item.maxUses}` : " (Unlimited)"}
+                      </span>
+                      {item.maxUses > 0 ? (
+                        <span style={{ fontWeight: 700, color: item.isExhausted ? "#ff6b8b" : "#f4c66c" }}>
+                          {item.isExhausted ? "EXHAUSTED" : `${usagePercent}%`}
+                        </span>
+                      ) : (
+                        <span style={{ color: "#a8e2b6", fontWeight: 600 }}>Active</span>
+                      )}
+                    </div>
 
-                      {/* Actions */}
-                      <td>
-                        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                          <button
-                            type="button"
-                            className="inf-view-btn"
-                            onClick={() => handleOpenConversionsModal(item.id)}
-                            title="View student redemptions"
-                          >
-                            Redemptions ({item.totalUses})
-                          </button>
-                          <button
-                            type="button"
-                            style={{
-                              background: "rgba(232, 93, 67, 0.15)",
-                              border: "1px solid rgba(232, 93, 67, 0.3)",
-                              color: "#ff8b9d",
-                              padding: "0.35rem 0.6rem",
-                              borderRadius: "6px",
-                              cursor: "pointer",
-                              fontSize: "0.75rem",
-                              fontWeight: 600,
-                            }}
-                            onClick={() => handleDeleteOfferCode(item.id, item.code)}
-                            title="Delete offer code"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </section>
+                    {item.maxUses > 0 && (
+                      <div className="admin-offer-usage-track">
+                        <div
+                          className={`admin-offer-usage-fill ${item.isExhausted ? "is-full" : ""}`}
+                          style={{ width: `${usagePercent}%` }}
+                        />
+                      </div>
+                    )}
+
+                    <div className="admin-offer-meta-strip">
+                      <div className="admin-offer-meta-col">
+                        <span>Revenue</span>
+                        <strong style={{ color: "#2ecc71" }}>₹{item.totalRevenue}</strong>
+                      </div>
+                      <div className="admin-offer-meta-col">
+                        <span>Discounts Given</span>
+                        <strong style={{ color: "#ed709d" }}>₹{item.totalDiscountGiven}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="admin-offer-actions">
+                    <button
+                      type="button"
+                      className="admin-offer-btn-conversions"
+                      onClick={() => handleOpenConversionsModal(item.id)}
+                    >
+                      Redemptions ({item.totalUses}) ➔
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`admin-offer-btn-toggle ${item.isActive ? "is-active" : ""}`}
+                      onClick={() => handleToggleStatus(item.id, item.isActive)}
+                    >
+                      {item.isActive ? "Disable" : "Enable"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="admin-offer-btn-delete"
+                      onClick={() => handleDeleteOfferCode(item.id, item.code)}
+                      title="Delete offer code"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Modal 1: Create New Offer Code */}
         {showAddModal && (
           <div className="admin-modal-overlay" onClick={() => setShowAddModal(false)}>
             <div
               className="admin-modal-card"
-              style={{ maxWidth: "600px" }}
+              style={{ maxWidth: "580px" }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="admin-modal-header">
                 <div>
-                  <span className="admin-kicker">DISCOUNT &amp; USAGE CONFIGURATION</span>
+                  <span className="admin-kicker">DISCOUNT &amp; USAGE SETUP</span>
                   <h2>Create New Offer Code</h2>
                 </div>
                 <button
@@ -709,239 +658,230 @@ function AdminOfferCodes() {
               </div>
 
               <form onSubmit={handleCreateOfferCode} className="admin-modal-form">
-                <div className="offer-form-grid">
-                  {/* Code Name & Auto Generator */}
-                  <div className="offer-form-full">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <label htmlFor="codeName">Offer Code String *</label>
-                      <button
-                        type="button"
-                        className="inf-generate-btn"
-                        onClick={handleAutoGenerateCode}
-                        disabled={isGeneratingCode}
-                      >
-                        {isGeneratingCode ? "Generating..." : "✨ Auto-generate"}
-                      </button>
-                    </div>
-                    <input
-                      id="codeName"
-                      type="text"
-                      placeholder="e.g. DANDIYA50, FREESTUDENT, SGT100"
-                      value={codeName}
-                      onChange={(e) =>
-                        setCodeName(
-                          e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ""),
-                        )
-                      }
-                      required
-                      autoFocus
-                    />
-                    <small style={{ color: "rgba(255, 248, 242, 0.5)", fontSize: "0.72rem" }}>
-                      Unique code students will enter at checkout (e.g. FREEDANDIYA, SGT50).
-                    </small>
-                  </div>
-
-                  {/* Campaign Title / Target */}
-                  <div className="offer-form-full">
-                    <label htmlFor="title">Campaign / Offer Title</label>
-                    <input
-                      id="title"
-                      type="text"
-                      placeholder="e.g. Navratri 50% Flash Sale or VIP 100% Free Pass"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Discount Type Selector */}
-                  <div className="offer-form-full">
-                    <label>Discount Mode</label>
-                    <div className="offer-chips-wrap">
-                      <button
-                        type="button"
-                        className={`offer-chip-btn ${discountType === "PERCENTAGE" ? "is-active" : ""}`}
-                        onClick={() => setDiscountType("PERCENTAGE")}
-                      >
-                        Percentage Discount (%) - Upto 100%
-                      </button>
-                      <button
-                        type="button"
-                        className={`offer-chip-btn ${discountType === "FLAT" ? "is-active" : ""}`}
-                        onClick={() => setDiscountType("FLAT")}
-                      >
-                        Flat Rupee Amount (₹)
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Percentage Discount Slider (Up to 100%) */}
-                  {discountType === "PERCENTAGE" && (
-                    <div className="offer-form-full">
-                      <div className="offer-slider-wrap">
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                          <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
-                            Discount Percentage (0% to 100%)
-                          </span>
-                          <span className="offer-slider-val">{discountPercentage}% OFF</span>
-                        </div>
-                        <div className="offer-slider-row">
-                          <input
-                            type="range"
-                            min="1"
-                            max="100"
-                            step="1"
-                            value={discountPercentage}
-                            onChange={(e) => setDiscountPercentage(Number(e.target.value))}
-                            className="offer-slider-input"
-                          />
-                        </div>
-
-                        {/* Quick Preset Chips for Discount */}
-                        <div className="offer-chips-wrap">
-                          {[10, 20, 25, 30, 50, 75, 100].map((pct) => (
-                            <button
-                              key={pct}
-                              type="button"
-                              className={`offer-chip-btn ${discountPercentage === pct ? "is-active" : ""}`}
-                              onClick={() => setDiscountPercentage(pct)}
-                            >
-                              {pct === 100 ? "🎉 100% FREE" : `${pct}% OFF`}
-                            </button>
-                          ))}
-                        </div>
-
-                        {/* Live Price Previews */}
-                        <div className="offer-preview-box">
-                          <div className={`offer-preview-card ${vibePreviewPrice === 0 ? "is-free" : ""}`}>
-                            <span>Vibe Pass (₹499) becomes:</span>
-                            <strong>
-                              {vibePreviewPrice === 0 ? "₹0 (FREE PASS)" : `₹${vibePreviewPrice}`}
-                            </strong>
-                          </div>
-                          <div className={`offer-preview-card ${premiumPreviewPrice === 0 ? "is-free" : ""}`}>
-                            <span>Premium Pass (₹999) becomes:</span>
-                            <strong>
-                              {premiumPreviewPrice === 0 ? "₹0 (FREE PASS)" : `₹${premiumPreviewPrice}`}
-                            </strong>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Flat Discount Mode */}
-                  {discountType === "FLAT" && (
-                    <>
-                      <div>
-                        <label htmlFor="discount499">₹499 Plan Discount (₹)</label>
-                        <input
-                          id="discount499"
-                          type="number"
-                          min="0"
-                          max="499"
-                          value={discount499}
-                          onChange={(e) => setDiscount499(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="discount999">₹999 Plan Discount (₹)</label>
-                        <input
-                          id="discount999"
-                          type="number"
-                          min="0"
-                          max="999"
-                          value={discount999}
-                          onChange={(e) => setDiscount999(e.target.value)}
-                        />
-                      </div>
-                    </>
-                  )}
-
-                  {/* Usage Limit ("Kitne times use honge wo") */}
-                  <div className="offer-form-full">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <label htmlFor="maxUses">Usage Limit (Kitne Times Use Honge)</label>
-                      <label style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", fontSize: "0.78rem" }}>
-                        <input
-                          type="checkbox"
-                          checked={isUnlimitedUses}
-                          onChange={(e) => setIsUnlimitedUses(e.target.checked)}
-                        />
-                        <span>Unlimited Uses</span>
-                      </label>
-                    </div>
-
-                    {!isUnlimitedUses ? (
-                      <div>
-                        <input
-                          id="maxUses"
-                          type="number"
-                          min="1"
-                          max="100000"
-                          placeholder="e.g. 10 or 50 times"
-                          value={maxUses}
-                          onChange={(e) => setMaxUses(e.target.value)}
-                          required={!isUnlimitedUses}
-                        />
-                        <div className="offer-chips-wrap">
-                          {[1, 5, 10, 20, 50, 100, 500].map((num) => (
-                            <button
-                              key={num}
-                              type="button"
-                              className={`offer-chip-btn ${maxUses === num && !isUnlimitedUses ? "is-active" : ""}`}
-                              onClick={() => {
-                                setMaxUses(num);
-                                setIsUnlimitedUses(false);
-                              }}
-                            >
-                              {num === 1 ? "1 Single Use" : `${num} Uses`}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ padding: "0.6rem 0.8rem", background: "rgba(46, 204, 113, 0.1)", borderRadius: "8px", border: "1px solid rgba(46, 204, 113, 0.3)", color: "#72e9a5", fontSize: "0.82rem" }}>
-                        ✓ This code can be used unlimited times until manually deactivated.
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Plan Restriction */}
-                  <div className="offer-form-full">
-                    <label htmlFor="applicablePlans">Applicable Plans</label>
-                    <select
-                      id="applicablePlans"
-                      value={applicablePlans}
-                      onChange={(e) => setApplicablePlans(e.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "0.8rem",
-                        borderRadius: "8px",
-                        background: "rgba(255, 255, 255, 0.08)",
-                        color: "#fff",
-                        border: "1px solid rgba(255, 255, 255, 0.2)",
-                      }}
+                {/* Code Name & Auto Generator */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <label htmlFor="codeName">Offer Code String *</label>
+                    <button
+                      type="button"
+                      className="admin-inf-code-btn"
+                      style={{ background: "none", border: "none", color: "#f4c66c", cursor: "pointer", fontWeight: "bold", fontSize: "0.8rem" }}
+                      onClick={handleAutoGenerateCode}
+                      disabled={isGeneratingCode}
                     >
-                      <option value="all">All Plans (Both ₹499 &amp; ₹999)</option>
-                      <option value="vibe">Vibe Plan Only (₹499)</option>
-                      <option value="premium">Premium Dandiya Plan Only (₹999)</option>
-                    </select>
+                      {isGeneratingCode ? "Generating..." : "✨ Auto-generate"}
+                    </button>
                   </div>
+                  <input
+                    id="codeName"
+                    type="text"
+                    placeholder="e.g. DANDIYA50, FREESTUDENT, SGT100"
+                    value={codeName}
+                    onChange={(e) =>
+                      setCodeName(
+                        e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ""),
+                      )
+                    }
+                    required
+                    autoFocus
+                  />
+                  <small style={{ color: "rgba(255, 248, 242, 0.5)", fontSize: "0.72rem" }}>
+                    Unique code entered by students during checkout.
+                  </small>
+                </div>
 
-                  {/* Admin Notes */}
-                  <div className="offer-form-full">
-                    <label htmlFor="notes">Internal Notes (Optional)</label>
-                    <input
-                      id="notes"
-                      type="text"
-                      placeholder="e.g. VIP Pass for College Head or Fest Team"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                    />
+                {/* Campaign Title */}
+                <div>
+                  <label htmlFor="title">Campaign / Offer Title</label>
+                  <input
+                    id="title"
+                    type="text"
+                    placeholder="e.g. Navratri 50% Flash Sale or VIP 100% Free Pass"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </div>
+
+                {/* Discount Mode Selector */}
+                <div>
+                  <label>Discount Mode</label>
+                  <div className="offer-chips-wrap">
+                    <button
+                      type="button"
+                      className={`offer-chip-btn ${discountType === "PERCENTAGE" ? "is-active" : ""}`}
+                      onClick={() => setDiscountType("PERCENTAGE")}
+                    >
+                      Percentage (%) - Up to 100% OFF
+                    </button>
+                    <button
+                      type="button"
+                      className={`offer-chip-btn ${discountType === "FLAT" ? "is-active" : ""}`}
+                      onClick={() => setDiscountType("FLAT")}
+                    >
+                      Flat Rupee Discount (₹)
+                    </button>
                   </div>
                 </div>
 
-                <div className="admin-modal-actions" style={{ marginTop: "1.5rem" }}>
+                {/* Percentage Discount Slider (Up to 100%) */}
+                {discountType === "PERCENTAGE" && (
+                  <div className="offer-slider-box">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff8f2" }}>
+                        Discount Percentage
+                      </span>
+                      <span className="offer-slider-display">{discountPercentage}% OFF</span>
+                    </div>
+
+                    <div className="offer-slider-row">
+                      <input
+                        type="range"
+                        min="1"
+                        max="100"
+                        step="1"
+                        value={discountPercentage}
+                        onChange={(e) => setDiscountPercentage(Number(e.target.value))}
+                      />
+                    </div>
+
+                    <div className="offer-chips-wrap">
+                      {[10, 20, 25, 30, 50, 75, 100].map((pct) => (
+                        <button
+                          key={pct}
+                          type="button"
+                          className={`offer-chip-btn ${discountPercentage === pct ? "is-active" : ""}`}
+                          onClick={() => setDiscountPercentage(pct)}
+                        >
+                          {pct === 100 ? "🎉 100% FREE" : `${pct}% OFF`}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="offer-preview-grid">
+                      <div className={`offer-preview-card ${vibePreviewPrice === 0 ? "is-free" : ""}`}>
+                        <span>Vibe Pass (₹499) ➔</span>
+                        <strong>{vibePreviewPrice === 0 ? "₹0 (FREE PASS)" : `₹${vibePreviewPrice}`}</strong>
+                      </div>
+                      <div className={`offer-preview-card ${premiumPreviewPrice === 0 ? "is-free" : ""}`}>
+                        <span>Premium Pass (₹999) ➔</span>
+                        <strong>{premiumPreviewPrice === 0 ? "₹0 (FREE PASS)" : `₹${premiumPreviewPrice}`}</strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Flat Rupee Mode */}
+                {discountType === "FLAT" && (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                    <div>
+                      <label htmlFor="discount499">₹499 Plan Discount (₹)</label>
+                      <input
+                        id="discount499"
+                        type="number"
+                        min="0"
+                        max="499"
+                        value={discount499}
+                        onChange={(e) => setDiscount499(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="discount999">₹999 Plan Discount (₹)</label>
+                      <input
+                        id="discount999"
+                        type="number"
+                        min="0"
+                        max="999"
+                        value={discount999}
+                        onChange={(e) => setDiscount999(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Usage Limit ("Kitne times use honge wo") */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <label htmlFor="maxUses">Usage Limit (Kitne Times Use Honge)</label>
+                    <label style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", fontSize: "0.78rem" }}>
+                      <input
+                        type="checkbox"
+                        checked={isUnlimitedUses}
+                        onChange={(e) => setIsUnlimitedUses(e.target.checked)}
+                      />
+                      <span>Unlimited Uses</span>
+                    </label>
+                  </div>
+
+                  {!isUnlimitedUses ? (
+                    <div>
+                      <input
+                        id="maxUses"
+                        type="number"
+                        min="1"
+                        max="100000"
+                        placeholder="e.g. 10 or 50 times"
+                        value={maxUses}
+                        onChange={(e) => setMaxUses(e.target.value)}
+                        required={!isUnlimitedUses}
+                      />
+                      <div className="offer-chips-wrap">
+                        {[1, 5, 10, 20, 50, 100, 500].map((num) => (
+                          <button
+                            key={num}
+                            type="button"
+                            className={`offer-chip-btn ${maxUses === num && !isUnlimitedUses ? "is-active" : ""}`}
+                            onClick={() => {
+                              setMaxUses(num);
+                              setIsUnlimitedUses(false);
+                            }}
+                          >
+                            {num === 1 ? "1 Single Use" : `${num} Uses`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ padding: "0.6rem 0.8rem", background: "rgba(74, 222, 128, 0.1)", borderRadius: "8px", border: "1px solid rgba(74, 222, 128, 0.3)", color: "#4ade80", fontSize: "0.82rem" }}>
+                      ✓ This code can be used unlimited times until manually disabled.
+                    </div>
+                  )}
+                </div>
+
+                {/* Plan Scope */}
+                <div>
+                  <label htmlFor="applicablePlans">Applicable Plans</label>
+                  <select
+                    id="applicablePlans"
+                    value={applicablePlans}
+                    onChange={(e) => setApplicablePlans(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "0.8rem",
+                      borderRadius: "10px",
+                      background: "rgba(255, 255, 255, 0.08)",
+                      color: "#fff",
+                      border: "1px solid rgba(255, 255, 255, 0.2)",
+                    }}
+                  >
+                    <option value="all">All Plans (Both ₹499 &amp; ₹999)</option>
+                    <option value="vibe">Vibe Plan Only (₹499)</option>
+                    <option value="premium">Premium Dandiya Plan Only (₹999)</option>
+                  </select>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label htmlFor="notes">Internal Notes (Optional)</label>
+                  <input
+                    id="notes"
+                    type="text"
+                    placeholder="e.g. VIP Pass for College Head or Fest Team"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                </div>
+
+                <div className="admin-modal-actions" style={{ marginTop: "1.25rem" }}>
                   <button
                     type="button"
                     className="admin-modal-cancel-btn"
@@ -993,77 +933,77 @@ function AdminOfferCodes() {
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-                  {/* Promo Summary */}
-                  <div className="inf-conv-summary-grid">
-                    <div className="inf-conv-stat">
-                      <span>Total Redemptions</span>
-                      <strong>{conversionsModalData.conversions?.length || 0}</strong>
+                  {/* Summary */}
+                  <div className="admin-match-stats-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+                    <div className="admin-stat-card purple">
+                      <span className="admin-stat-label">Total Redemptions</span>
+                      <strong className="admin-stat-val">{conversionsModalData.conversions?.length || 0}</strong>
                     </div>
-                    <div className="inf-conv-stat">
-                      <span>Total Net Revenue</span>
-                      <strong style={{ color: "#2ecc71" }}>
-                        ₹{conversionsModalData.promo?.totalRevenue || 0}
+                    <div className="admin-stat-card green-accent">
+                      <span className="admin-stat-label">Net Revenue</span>
+                      <strong className="admin-stat-val">
+                        ₹{(conversionsModalData.promo?.totalRevenue || 0).toLocaleString()}
                       </strong>
                     </div>
-                    <div className="inf-conv-stat">
-                      <span>Total Discounts</span>
-                      <strong style={{ color: "#ed709d" }}>
-                        ₹{conversionsModalData.promo?.totalDiscountGiven || 0}
+                    <div className="admin-stat-card red">
+                      <span className="admin-stat-label">Total Discounts</span>
+                      <strong className="admin-stat-val">
+                        ₹{(conversionsModalData.promo?.totalDiscountGiven || 0).toLocaleString()}
                       </strong>
                     </div>
                   </div>
 
-                  {/* Conversions Table */}
+                  {/* Table */}
                   {conversionsModalData.conversions?.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "2.5rem 1rem", color: "rgba(255, 248, 242, 0.6)" }}>
                       <p>No students have redeemed this code yet.</p>
                     </div>
                   ) : (
-                    <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-                      <table className="inf-table" style={{ fontSize: "0.82rem" }}>
+                    <div style={{ maxHeight: "380px", overflowY: "auto" }}>
+                      <table className="admin-table" style={{ width: "100%", fontSize: "0.82rem", borderCollapse: "collapse" }}>
                         <thead>
-                          <tr>
-                            <th>Student</th>
-                            <th>College</th>
-                            <th>Plan</th>
-                            <th>Discount</th>
-                            <th>Paid</th>
-                            <th>UTR</th>
-                            <th>Status</th>
+                          <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)", textAlign: "left" }}>
+                            <th style={{ padding: "0.6rem 0.8rem" }}>Student</th>
+                            <th style={{ padding: "0.6rem 0.8rem" }}>College</th>
+                            <th style={{ padding: "0.6rem 0.8rem" }}>Plan</th>
+                            <th style={{ padding: "0.6rem 0.8rem" }}>Discount</th>
+                            <th style={{ padding: "0.6rem 0.8rem" }}>Paid</th>
+                            <th style={{ padding: "0.6rem 0.8rem" }}>UTR</th>
+                            <th style={{ padding: "0.6rem 0.8rem" }}>Status</th>
                           </tr>
                         </thead>
                         <tbody>
                           {conversionsModalData.conversions.map((conv) => (
-                            <tr key={conv.paymentId}>
-                              <td>
+                            <tr key={conv.paymentId} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                              <td style={{ padding: "0.6rem 0.8rem" }}>
                                 <div>
                                   <strong>{conv.studentName}</strong>
-                                  <small className="inf-email" style={{ display: "block" }}>
+                                  <small style={{ display: "block", color: "rgba(255,248,242,0.6)" }}>
                                     {conv.studentEmail}
                                   </small>
                                 </div>
                               </td>
-                              <td>{conv.collegeName}</td>
-                              <td>
+                              <td style={{ padding: "0.6rem 0.8rem" }}>{conv.collegeName}</td>
+                              <td style={{ padding: "0.6rem 0.8rem" }}>
                                 <span style={{ textTransform: "capitalize", color: "#f4c66c" }}>
                                   {conv.plan}
                                 </span>
                               </td>
-                              <td style={{ color: "#ed709d" }}>-₹{conv.discountAmount}</td>
-                              <td style={{ fontWeight: "bold", color: "#2ecc71" }}>₹{conv.paidAmount}</td>
-                              <td>
+                              <td style={{ padding: "0.6rem 0.8rem", color: "#ed709d" }}>-₹{conv.discountAmount}</td>
+                              <td style={{ padding: "0.6rem 0.8rem", fontWeight: "bold", color: "#2ecc71" }}>
+                                ₹{conv.paidAmount}
+                              </td>
+                              <td style={{ padding: "0.6rem 0.8rem" }}>
                                 <code style={{ fontSize: "0.75rem", background: "rgba(255,255,255,0.08)", padding: "0.2rem 0.4rem", borderRadius: "4px" }}>
                                   {conv.utr || "N/A"}
                                 </code>
                               </td>
-                              <td>
+                              <td style={{ padding: "0.6rem 0.8rem" }}>
                                 <span
-                                  className={`inf-status-badge ${
+                                  className={`admin-inf-status-badge ${
                                     conv.status === "APPROVED"
-                                      ? "is-active"
-                                      : conv.status === "PENDING"
-                                      ? "is-pending"
-                                      : "is-inactive"
+                                      ? "active"
+                                      : "inactive"
                                   }`}
                                   style={{ cursor: "default" }}
                                 >

@@ -1,141 +1,328 @@
-/* Admin Offer Codes Styling */
+/* ==========================================================
+   SGT ADMIN OFFER CODES HUB STYLES (MATCHED DESIGN SYSTEM)
+   ========================================================== */
 
-.offer-type-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+/* Offer Grid */
+.admin-offers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.35rem;
 }
 
-.offer-type-badge--free {
-  background: rgba(46, 204, 113, 0.2);
-  color: #2ecc71;
-  border: 1px solid rgba(46, 204, 113, 0.4);
+@media (max-width: 650px) {
+  .admin-offers-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.offer-type-badge--pct {
-  background: rgba(244, 198, 108, 0.2);
-  color: #f4c66c;
-  border: 1px solid rgba(244, 198, 108, 0.4);
-}
-
-.offer-type-badge--flat {
-  background: rgba(52, 152, 219, 0.2);
-  color: #3498db;
-  border: 1px solid rgba(52, 152, 219, 0.4);
-}
-
-/* Usage Progress Bar */
-.offer-usage-cell {
+.admin-offer-card {
+  background: rgba(25, 10, 34, 0.75);
+  border: 1px solid rgba(244, 198, 108, 0.2);
+  border-radius: 18px;
+  padding: 1.35rem;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  min-width: 140px;
+  gap: 1.1rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  position: relative;
+  overflow: hidden;
 }
 
-.offer-usage-text {
+.admin-offer-card:hover {
+  background: rgba(35, 14, 46, 0.85);
+  border-color: rgba(244, 198, 108, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+
+.admin-offer-card.is-inactive {
+  opacity: 0.65;
+  border-color: rgba(248, 113, 113, 0.25);
+}
+
+.admin-offer-card.is-exhausted {
+  border-color: rgba(255, 107, 139, 0.4);
+}
+
+/* Card Header */
+.admin-offer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.admin-offer-title {
+  margin: 0 0 0.25rem;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fff8f2;
+}
+
+.admin-offer-notes {
+  font-size: 0.78rem;
+  color: rgba(255, 248, 242, 0.6);
+  line-height: 1.4;
+}
+
+/* Promo Code Box */
+.admin-offer-code-box {
+  background: linear-gradient(135deg, rgba(244, 198, 108, 0.12), rgba(232, 93, 67, 0.08));
+  border: 1.5px dashed rgba(244, 198, 108, 0.45);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.78rem;
+  gap: 0.75rem;
+}
+
+.admin-offer-code-pill {
+  font-family: monospace;
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #f4c66c;
+}
+
+.admin-offer-copy-btn {
+  background: rgba(244, 198, 108, 0.15);
+  border: 1px solid rgba(244, 198, 108, 0.35);
+  color: #f4c66c;
+  padding: 0.35rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-offer-copy-btn:hover {
+  background: #f4c66c;
+  color: #1a0820;
+}
+
+/* Discount & Scope Tags */
+.admin-offer-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.offer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.offer-badge--free {
+  background: rgba(46, 204, 113, 0.2);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.45);
+}
+
+.offer-badge--pct {
+  background: rgba(244, 198, 108, 0.2);
+  color: #f4c66c;
+  border: 1px solid rgba(244, 198, 108, 0.45);
+}
+
+.offer-badge--flat {
+  background: rgba(52, 152, 219, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(52, 152, 219, 0.45);
+}
+
+.offer-badge--scope {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 248, 242, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+/* Usage Progress Section */
+.admin-offer-usage {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.admin-offer-usage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
   color: rgba(255, 248, 242, 0.85);
 }
 
-.offer-usage-track {
+.admin-offer-usage-track {
   width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  height: 7px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   overflow: hidden;
 }
 
-.offer-usage-fill {
+.admin-offer-usage-fill {
   height: 100%;
   background: linear-gradient(90deg, #f4c66c, #ed709d);
   border-radius: 999px;
   transition: width 0.3s ease;
 }
 
-.offer-usage-fill--full {
+.admin-offer-usage-fill.is-full {
   background: #e74c3c;
 }
 
-.offer-tag-exhausted {
-  color: #ff6b8b;
-  font-weight: 700;
-  font-size: 0.7rem;
-}
-
-.offer-tag-unlimited {
-  color: #a8e2b6;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-/* Modal Form Styles */
-.offer-form-grid {
+.admin-offer-meta-strip {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.2rem;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+  font-size: 0.78rem;
 }
 
-.offer-form-full {
-  grid-column: 1 / -1;
+.admin-offer-meta-col span {
+  display: block;
+  color: rgba(255, 248, 242, 0.55);
 }
 
-.offer-slider-wrap {
+.admin-offer-meta-col strong {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+/* Card Actions */
+.admin-offer-actions {
+  display: flex;
+  gap: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-offer-btn-conversions {
+  flex: 1;
+  background: rgba(244, 198, 108, 0.12);
+  border: 1px solid rgba(244, 198, 108, 0.3);
+  color: #f4c66c;
+  padding: 0.55rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-offer-btn-conversions:hover {
+  background: #f4c66c;
+  color: #1a0820;
+}
+
+.admin-offer-btn-toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 248, 242, 0.8);
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-offer-btn-toggle.is-active {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.35);
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.admin-offer-btn-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.admin-offer-btn-delete {
+  background: rgba(232, 93, 67, 0.12);
+  border: 1px solid rgba(232, 93, 67, 0.3);
+  color: #ff9d8b;
+  padding: 0.55rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-offer-btn-delete:hover {
+  background: #e85d43;
+  color: #fff;
+}
+
+/* Modal Styling */
+.offer-slider-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(244, 198, 108, 0.25);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.04);
-  padding: 0.85rem 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(224, 162, 76, 0.25);
+  gap: 0.75rem;
 }
 
 .offer-slider-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-.offer-slider-input {
+.offer-slider-row input[type="range"] {
   flex: 1;
   accent-color: #f4c66c;
   cursor: pointer;
+  height: 6px;
 }
 
-.offer-slider-val {
-  font-size: 1.2rem;
+.offer-slider-display {
+  font-family: monospace;
+  font-size: 1.4rem;
   font-weight: 800;
   color: #f4c66c;
-  min-width: 60px;
+  min-width: 80px;
   text-align: right;
 }
 
-.offer-preview-box {
+.offer-preview-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
-  margin-top: 0.5rem;
 }
 
 .offer-preview-card {
-  padding: 0.6rem 0.8rem;
-  background: rgba(24, 9, 34, 0.7);
+  background: rgba(18, 6, 26, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  font-size: 0.76rem;
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.78rem;
+  color: rgba(255, 248, 242, 0.7);
 }
 
 .offer-preview-card strong {
   display: block;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #fff;
   margin-top: 0.2rem;
 }
@@ -148,17 +335,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
-  margin-top: 0.4rem;
+  margin-top: 0.35rem;
 }
 
 .offer-chip-btn {
-  padding: 0.35rem 0.7rem;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 999px;
   color: rgba(255, 248, 242, 0.8);
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -168,10 +355,4 @@
   background: rgba(244, 198, 108, 0.2);
   border-color: #f4c66c;
   color: #f4c66c;
-}
-
-@media (max-width: 640px) {
-  .offer-form-grid {
-    grid-template-columns: 1fr;
-  }
 }
