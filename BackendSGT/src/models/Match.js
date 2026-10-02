@@ -22,7 +22,7 @@ const matchSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["SEARCHING", "AI_EVALUATING", "ACTIVE", "DECLINED", "EXPIRED"],
+      enum: ["SEARCHING", "AI_EVALUATING", "ACTIVE", "DECLINED", "EXPIRED", "CANCELLED_BY_ADMIN"],
       default: "ACTIVE",
       index: true,
     },

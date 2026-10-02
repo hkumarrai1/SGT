@@ -1,0 +1,425 @@
+/* ==========================================================
+   ADMIN DANDIYA MATCHES & PAIR REGISTRY STYLES
+   ========================================================== */
+
+.admin-match-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.admin-stat-card {
+  background: rgba(23, 10, 33, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.admin-stat-card.gold {
+  border-color: rgba(244, 198, 108, 0.35);
+  background: linear-gradient(145deg, rgba(244, 198, 108, 0.08) 0%, rgba(23, 10, 33, 0.85) 100%);
+}
+
+.admin-stat-card.purple {
+  border-color: rgba(192, 38, 211, 0.35);
+  background: linear-gradient(145deg, rgba(192, 38, 211, 0.08) 0%, rgba(23, 10, 33, 0.85) 100%);
+}
+
+.admin-stat-card.gray {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.admin-stat-card.red {
+  border-color: rgba(232, 93, 67, 0.35);
+  background: linear-gradient(145deg, rgba(232, 93, 67, 0.08) 0%, rgba(23, 10, 33, 0.85) 100%);
+}
+
+.admin-stat-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(255, 248, 242, 0.7);
+  letter-spacing: 0.04em;
+}
+
+.admin-stat-val {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #fff8f2;
+  line-height: 1.1;
+}
+
+.admin-stat-card.gold .admin-stat-val {
+  color: #f4c66c;
+}
+
+.admin-stat-card.purple .admin-stat-val {
+  color: #f0abfc;
+}
+
+.admin-stat-card.red .admin-stat-val {
+  color: #ff9d8b;
+}
+
+.admin-stat-sub {
+  font-size: 0.75rem;
+  color: rgba(255, 248, 242, 0.5);
+  margin-top: 0.2rem;
+}
+
+/* Pair Cards */
+.admin-match-pairs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-pair-card {
+  background: rgba(23, 10, 33, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 1.5rem;
+  backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.admin-pair-card:hover {
+  border-color: rgba(244, 198, 108, 0.3);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+}
+
+.admin-pair-card.is-mutual-pair {
+  border-color: rgba(244, 198, 108, 0.4);
+  background: linear-gradient(160deg, rgba(244, 198, 108, 0.05) 0%, rgba(23, 10, 33, 0.88) 100%);
+  box-shadow: 0 8px 30px rgba(244, 198, 108, 0.08);
+}
+
+.admin-pair-card.is-cancelled {
+  opacity: 0.65;
+  border-style: dashed;
+}
+
+.admin-pair-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-pair-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.badge-mutual {
+  background: rgba(244, 198, 108, 0.2);
+  border: 1px solid rgba(244, 198, 108, 0.5);
+  color: #f4c66c;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.badge-active {
+  background: rgba(192, 38, 211, 0.18);
+  border: 1px solid rgba(192, 38, 211, 0.4);
+  color: #f0abfc;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.badge-cancelled {
+  background: rgba(232, 93, 67, 0.18);
+  border: 1px solid rgba(232, 93, 67, 0.4);
+  color: #ff9d8b;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.admin-pair-compat-badge {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff8f2;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.admin-pair-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: rgba(255, 248, 242, 0.6);
+}
+
+/* Pair Body: 2 Students + Bridge */
+.admin-pair-body {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+@media (max-width: 860px) {
+  .admin-pair-body {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.admin-student-box {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.1rem;
+}
+
+.admin-student-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.admin-student-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 2px solid #f4c66c;
+  object-fit: cover;
+  background: rgba(244, 198, 108, 0.1);
+}
+
+.admin-student-avatar-empty {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 2px solid rgba(244, 198, 108, 0.5);
+  background: linear-gradient(135deg, #c52870 0%, #460925 100%);
+  display: grid;
+  place-items: center;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff8f2;
+}
+
+.admin-student-blocked-flag {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #e85d43;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+}
+
+.admin-student-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-student-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 1rem;
+  color: #fff8f2;
+}
+
+.admin-student-alias {
+  font-size: 0.76rem;
+  color: #f0abfc;
+  background: rgba(192, 38, 211, 0.15);
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.admin-student-email-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-tag-active {
+  font-size: 0.72rem;
+  color: #2ecc71;
+  font-weight: 700;
+}
+
+.admin-tag-blocked {
+  font-size: 0.72rem;
+  color: #ff9d8b;
+  background: rgba(232, 93, 67, 0.15);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 800;
+}
+
+.admin-student-sub {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(255, 248, 242, 0.65);
+}
+
+.admin-student-quick-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.admin-btn-block-sm {
+  background: rgba(232, 93, 67, 0.12);
+  border: 1px solid rgba(232, 93, 67, 0.3);
+  color: #ff9d8b;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-block-sm:hover:not(:disabled) {
+  background: #e85d43;
+  color: #fff;
+}
+
+.admin-btn-unblock {
+  background: rgba(46, 204, 113, 0.15);
+  border: 1px solid rgba(46, 204, 113, 0.4);
+  color: #2ecc71;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-unblock:hover:not(:disabled) {
+  background: #2ecc71;
+  color: #0b2e16;
+}
+
+/* Center Bridge Graphic */
+.admin-pair-bridge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0 0.5rem;
+}
+
+.admin-bridge-icon {
+  font-size: 1.4rem;
+}
+
+.admin-bridge-score {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #f4c66c;
+}
+
+/* AI Synthesis Box */
+.admin-pair-synthesis {
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid #f4c66c;
+  padding: 0.6rem 0.85rem;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.8rem;
+  color: rgba(255, 248, 242, 0.8);
+}
+
+.admin-pair-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-btn-unpair {
+  background: rgba(244, 198, 108, 0.15);
+  border: 1px solid rgba(244, 198, 108, 0.4);
+  color: #f4c66c;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-unpair:hover:not(:disabled) {
+  background: #f4c66c;
+  color: #1a0820;
+}
+
+.admin-btn-nullify {
+  background: rgba(232, 93, 67, 0.15);
+  border: 1px solid rgba(232, 93, 67, 0.4);
+  color: #ff9d8b;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-btn-nullify:hover:not(:disabled) {
+  background: #e85d43;
+  color: #fff;
+}
+
+.admin-block-btn {
+  background: rgba(232, 93, 67, 0.15);
+  border: 1px solid rgba(232, 93, 67, 0.4);
+  color: #ff9d8b;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-block-btn:hover {
+  background: #e85d43;
+  color: #fff;
+}

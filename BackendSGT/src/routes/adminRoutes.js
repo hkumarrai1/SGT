@@ -14,6 +14,14 @@ import {
   listPayments,
   rejectPayment,
 } from "../controllers/adminPaymentController.js";
+import {
+  blockUser,
+  blockUserByEmail,
+  listMatches,
+  nullifyMatch,
+  unblockUser,
+  unpairMatch,
+} from "../controllers/adminMatchController.js";
 
 const router = Router();
 router.post("/login", asyncHandler(adminLogin));
@@ -46,6 +54,28 @@ router.patch(
   "/payments/:paymentId/reject",
   requireAdmin,
   asyncHandler(rejectPayment),
+);
+
+// Dandiya Match & Pair Management Endpoints
+router.get("/matches", requireAdmin, asyncHandler(listMatches));
+router.patch(
+  "/matches/:matchId/nullify",
+  requireAdmin,
+  asyncHandler(nullifyMatch),
+);
+router.patch(
+  "/matches/:matchId/unpair",
+  requireAdmin,
+  asyncHandler(unpairMatch),
+);
+
+// User Suspension / Blocking Endpoints
+router.patch("/users/:userId/block", requireAdmin, asyncHandler(blockUser));
+router.patch("/users/:userId/unblock", requireAdmin, asyncHandler(unblockUser));
+router.post(
+  "/users/block-by-email",
+  requireAdmin,
+  asyncHandler(blockUserByEmail),
 );
 
 export default router;

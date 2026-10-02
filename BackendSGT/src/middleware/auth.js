@@ -20,6 +20,16 @@ export async function requireAuth(req, res, next) {
         .json({ success: false, message: "Authentication required." });
     }
 
+    if (user.isBlocked) {
+      return res.status(403).json({
+        success: false,
+        isBlocked: true,
+        message:
+          user.blockReason ||
+          "Your account has been suspended by campus administration.",
+      });
+    }
+
     req.user = user;
     next();
   } catch {

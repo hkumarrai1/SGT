@@ -313,6 +313,14 @@ function AdminDashboard() {
               <span className="admin-tab-count">{pendingAppsCount} PENDING</span>
             )}
           </button>
+
+          <button
+            type="button"
+            className="admin-tab-btn"
+            onClick={() => window.location.assign("/admin/matches")}
+          >
+            <span>💃 Dandiya Matches & Pairs</span>
+          </button>
         </div>
 
         {/* Loading Indicator */}
