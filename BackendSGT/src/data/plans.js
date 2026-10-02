@@ -34,7 +34,7 @@ export const SGT_PLANS = {
 };
 
 export const OFFICIAL_UPI = {
-  vpa: "9971284797@ptaxis",
+  vpa: "thesgtofficial@oksbi",
   payeeName: "SGT Souls Gather Together",
   note: "SGT Dandiya Night Pass",
 };

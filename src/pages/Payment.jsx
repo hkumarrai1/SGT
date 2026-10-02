@@ -619,13 +619,13 @@ function Payment() {
             <div className="payment-upi-section">
               <div className="payment-upi-row">
                 <span className="payment-upi-label">UPI ID:</span>
-                <span className="payment-upi-id">9971284797@ptaxis</span>
+                <span className="payment-upi-id">thesgtofficial@oksbi</span>
                 <button
                   type="button"
                   className="payment-copy-btn"
-                  onClick={() => handleCopyUpi("9971284797@ptaxis")}
+                  onClick={() => handleCopyUpi("thesgtofficial@oksbi")}
                 >
-                  {copiedId === "9971284797@ptaxis" ? "Copied! ✓" : "Copy"}
+                  {copiedId === "thesgtofficial@oksbi" ? "Copied! ✓" : "Copy"}
                 </button>
               </div>
             </div>
