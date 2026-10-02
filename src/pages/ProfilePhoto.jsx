@@ -32,11 +32,15 @@ function ProfilePhoto() {
         });
         const data = await response.json();
         if (response.status === 400) {
-          window.location.assign("/onboarding/profile");
+          window.location.assign("/onboarding/college");
           return;
         }
         if (!response.ok)
           throw new Error(data.message || "Unable to load your profile photo.");
+        if (!data.profile || !data.profile.fullName) {
+          window.location.assign("/onboarding/profile");
+          return;
+        }
         setCurrentPhoto(data.profilePhoto);
       } catch (error) {
         setStatus({ type: "error", message: error.message });

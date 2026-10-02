@@ -72,10 +72,12 @@ export async function saveCollegeId(userId, file, studentId = null) {
     throw invalid(
       "Complete institution selection before uploading your College ID.",
     );
-  if (
-    profile.onboardingStatus !== "PROFILE_PHOTO_COMPLETED" &&
-    profile.onboardingStatus !== "COLLEGE_ID_SUBMITTED"
-  ) {
+  if (!profile.fullName || !profile.studentId) {
+    throw invalid(
+      "Complete your basic profile before uploading your College ID.",
+    );
+  }
+  if (!profile.profilePhoto?.publicId) {
     throw invalid(
       "Complete your profile photo before uploading your College ID.",
     );
@@ -124,7 +126,17 @@ export async function saveCollegeId(userId, file, studentId = null) {
         setDefaultsOnInsert: true,
       },
     );
-    profile.onboardingStatus = "COLLEGE_ID_SUBMITTED";
+    if (
+      [
+        "COLLEGE_PENDING",
+        "PROFILE_PENDING",
+        "PROFILE_COMPLETED",
+        "TRAITS_COMPLETED",
+        "PROFILE_PHOTO_COMPLETED",
+      ].includes(profile.onboardingStatus)
+    ) {
+      profile.onboardingStatus = "COLLEGE_ID_SUBMITTED";
+    }
     if (cleanStudentId) {
       profile.studentId = cleanStudentId;
     }

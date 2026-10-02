@@ -65,11 +65,7 @@ export async function saveProfilePhoto(userId, file) {
     throw invalid(
       "Complete institution selection before uploading a profile photo.",
     );
-  if (
-    !["PROFILE_COMPLETED", "PROFILE_PHOTO_COMPLETED"].includes(
-      profile.onboardingStatus,
-    )
-  )
+  if (!profile.fullName || !profile.studentId)
     throw invalid("Complete your basic profile before uploading a photo.");
 
   const previousPhoto =
@@ -87,7 +83,17 @@ export async function saveProfilePhoto(userId, file) {
 
   try {
     profile.profilePhoto = nextPhoto;
-    profile.onboardingStatus = "PROFILE_PHOTO_COMPLETED";
+    if (
+      [
+        "COLLEGE_PENDING",
+        "PROFILE_PENDING",
+        "PROFILE_COMPLETED",
+        "TRAITS_COMPLETED",
+        "PROFILE_PHOTO_COMPLETED",
+      ].includes(profile.onboardingStatus)
+    ) {
+      profile.onboardingStatus = "PROFILE_PHOTO_COMPLETED";
+    }
     await profile.save();
   } catch (error) {
     try {

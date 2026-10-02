@@ -53,25 +53,32 @@ export async function getBasicProfile(req, res) {
     });
   }
 
-  return res.json({
-    success: true,
-    institution: profile.institutionId,
-    profile: [
+  const hasProfileData = Boolean(
+    profile.fullName ||
+    [
       "PROFILE_COMPLETED",
+      "TRAITS_COMPLETED",
       "PROFILE_PHOTO_COMPLETED",
       "COLLEGE_ID_SUBMITTED",
       "LIVE_PHOTO_SUBMITTED",
       "COMPLETED",
     ].includes(profile.onboardingStatus)
+  );
+
+  return res.json({
+    success: true,
+    institution: profile.institutionId,
+    profile: hasProfileData
       ? {
-          fullName: profile.fullName,
-          dateOfBirth: profile.dateOfBirth,
-          gender: profile.gender,
-          course: profile.course,
-          academicYear: profile.academicYear,
-          studentId: profile.studentId,
+          fullName: profile.fullName || "",
+          dateOfBirth: profile.dateOfBirth || null,
+          gender: profile.gender || "",
+          course: profile.course || "",
+          academicYear: profile.academicYear || "",
+          studentId: profile.studentId || "",
         }
       : null,
+    personalityTraits: profile.personalityTraits || {},
     profilePhoto: profile.profilePhoto || null,
   });
 }

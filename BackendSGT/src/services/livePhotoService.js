@@ -3,6 +3,7 @@ import cloudinary from "../config/cloudinary.js";
 import Institution from "../models/Institution.js";
 import LivePhoto from "../models/LivePhoto.js";
 import Profile from "../models/Profile.js";
+import Verification from "../models/Verification.js";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const LIVE_PHOTO_FOLDER = "SGT/verification/live-photos";
@@ -60,11 +61,11 @@ async function ensureReady(userId) {
   const profile = await Profile.findOne({ userId });
   if (!profile?.institutionId)
     throw invalid("Complete institution selection first.");
-  if (
-    !["COLLEGE_ID_SUBMITTED", "LIVE_PHOTO_SUBMITTED"].includes(
-      profile.onboardingStatus,
-    )
-  )
+  const collegeId = await Verification.findOne({
+    userId,
+    verificationStatus: { $in: ["PENDING", "VERIFIED"] },
+  }).select("_id");
+  if (!collegeId)
     throw invalid("Submit your College ID before taking a Live Photo.");
   const institution = await Institution.findOne({
     _id: profile.institutionId,
@@ -131,8 +132,19 @@ async function saveLivePhoto(
         setDefaultsOnInsert: true,
       },
     );
-    profile.onboardingStatus = "LIVE_PHOTO_SUBMITTED";
-    await profile.save();
+    if (
+      [
+        "COLLEGE_PENDING",
+        "PROFILE_PENDING",
+        "PROFILE_COMPLETED",
+        "TRAITS_COMPLETED",
+        "PROFILE_PHOTO_COMPLETED",
+        "COLLEGE_ID_SUBMITTED",
+      ].includes(profile.onboardingStatus)
+    ) {
+      profile.onboardingStatus = "LIVE_PHOTO_SUBMITTED";
+      await profile.save();
+    }
   } catch (error) {
     try {
       await deletePrivateLivePhoto(uploaded.public_id);

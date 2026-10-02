@@ -137,25 +137,44 @@ export default function PersonalityTraits() {
 
     async function loadTraits() {
       try {
-        const response = await fetch(`${API_URL}/api/profile/traits`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        if (response.ok && data.traits) {
+        const [statusRes, traitsRes] = await Promise.all([
+          fetch(`${API_URL}/api/onboarding/status`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_URL}/api/profile/traits`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        const statusData = await statusRes.json();
+        if (statusRes.ok && statusData.onboarding) {
+          if (!statusData.onboarding.institutionSelected) {
+            window.location.assign("/onboarding/college");
+            return;
+          }
+          if (!statusData.onboarding.profileComplete) {
+            window.location.assign("/onboarding/profile");
+            return;
+          }
+        }
+
+        const data = await traitsRes.json();
+        const traits = data.traits || statusData.onboarding?.personalityTraits || {};
+        if (traits) {
           setForm({
-            height: data.traits.height || "",
-            partnerHeightPref: data.traits.partnerHeightPref || "",
-            zodiacSign: data.traits.zodiacSign || "",
-            lifestyleTags: Array.isArray(data.traits.lifestyleTags) ? data.traits.lifestyleTags : [],
-            dandiyaSkill: data.traits.dandiyaSkill || "",
-            outfitAesthetic: data.traits.outfitAesthetic || "",
-            eventPersona: data.traits.eventPersona || "",
-            socialBattery: data.traits.socialBattery || "",
-            humorStyle: data.traits.humorStyle || "",
-            musicTaste: data.traits.musicTaste || "",
-            partnerVibe: data.traits.partnerVibe || "",
-            campusPreference: data.traits.campusPreference || "",
-            greenFlags: Array.isArray(data.traits.greenFlags) ? data.traits.greenFlags : []
+            height: traits.height || "",
+            partnerHeightPref: traits.partnerHeightPref || "",
+            zodiacSign: traits.zodiacSign || "",
+            lifestyleTags: Array.isArray(traits.lifestyleTags) ? traits.lifestyleTags : [],
+            dandiyaSkill: traits.dandiyaSkill || "",
+            outfitAesthetic: traits.outfitAesthetic || "",
+            eventPersona: traits.eventPersona || "",
+            socialBattery: traits.socialBattery || "",
+            humorStyle: traits.humorStyle || "",
+            musicTaste: traits.musicTaste || "",
+            partnerVibe: traits.partnerVibe || "",
+            campusPreference: traits.campusPreference || "",
+            greenFlags: Array.isArray(traits.greenFlags) ? traits.greenFlags : []
           });
         }
       } catch (err) {

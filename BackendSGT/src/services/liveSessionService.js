@@ -21,8 +21,6 @@ async function ensureReadyForLivePhoto(userId) {
   const profile = await Profile.findOne({ userId });
   if (!profile?.institutionId)
     throw invalid("Complete institution selection first.");
-  if (profile.onboardingStatus !== "COLLEGE_ID_SUBMITTED")
-    throw invalid("Submit your College ID before taking a Live Photo.");
   const collegeId = await Verification.findOne({
     userId,
     verificationStatus: { $in: ["PENDING", "VERIFIED"] },

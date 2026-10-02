@@ -186,13 +186,15 @@ function Dashboard() {
           const stepMap = {
             COLLEGE: "/onboarding/college",
             PROFILE: "/onboarding/profile",
+            TRAITS: "/onboarding/traits",
             PROFILE_PHOTO: "/onboarding/profile-photo",
             COLLEGE_ID: "/onboarding/college-id",
             LIVE_PHOTO: "/onboarding/live-photo",
             REVIEW: "/onboarding/review",
             VERIFICATION_PENDING: "/verification/pending",
+            RETRY_VERIFICATION: "/onboarding/college-id",
           };
-          window.location.replace(stepMap[onboarding.nextStep] || "/onboarding/review");
+          window.location.replace(stepMap[onboarding.nextStep] || "/onboarding/college");
           return;
         }
 
