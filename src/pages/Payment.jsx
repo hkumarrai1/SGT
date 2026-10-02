@@ -199,7 +199,10 @@ function Payment() {
       return;
     }
 
-    if (!utr.trim()) {
+    const isFreePass = effectivePrice === 0;
+    const finalUtr = isFreePass ? (utr.trim() || `FREE-${appliedPromo?.code || "PASS"}-${Date.now().toString().slice(-4)}`) : utr.trim();
+
+    if (!isFreePass && !finalUtr) {
       setAlert({
         type: "error",
         message: "Please enter your 12-digit UTR / UPI Transaction Reference Number.",
@@ -207,7 +210,28 @@ function Payment() {
       return;
     }
 
-    if (!screenshotFile) {
+    let finalFile = screenshotFile;
+    if (!finalFile && isFreePass) {
+      // Create a lightweight placeholder screenshot blob for 100% free pass
+      const canvas = document.createElement("canvas");
+      canvas.width = 300;
+      canvas.height = 150;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#180722";
+      ctx.fillRect(0, 0, 300, 150);
+      ctx.fillStyle = "#f4c66c";
+      ctx.font = "bold 16px sans-serif";
+      ctx.fillText("SGT 100% FREE PASS", 20, 50);
+      ctx.fillStyle = "#fff";
+      ctx.font = "14px sans-serif";
+      ctx.fillText(`Code: ${appliedPromo?.code || "FREE"}`, 20, 80);
+      ctx.fillText(`Plan: ${currentPlan.name}`, 20, 110);
+      
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      finalFile = new File([blob], `free_pass_${appliedPromo?.code || "pass"}.png`, { type: "image/png" });
+    }
+
+    if (!finalFile) {
       setAlert({
         type: "error",
         message: "Please upload your payment screenshot before submitting.",
@@ -221,8 +245,8 @@ function Payment() {
     try {
       const formData = new FormData();
       formData.append("plan", selectedPlanId);
-      formData.append("utr", utr.trim());
-      formData.append("screenshot", screenshotFile);
+      formData.append("utr", finalUtr);
+      formData.append("screenshot", finalFile);
       if (appliedPromo?.code) {
         formData.append("promoCode", appliedPromo.code);
       }

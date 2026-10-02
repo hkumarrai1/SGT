@@ -581,15 +581,22 @@ function AdminMatches() {
             type="button"
             className="admin-tab-btn is-active"
           >
-            💃 Dandiya Matches & Pairs
+            ✨ Dandiya Matchmaker
             <span className="admin-tab-count">{mutualPairsCount} Paired</span>
+          </button>
+          <button
+            type="button"
+            className="admin-tab-btn"
+            onClick={() => window.location.assign("/admin/offers")}
+          >
+            🎟️ Offer Codes
           </button>
           <button
             type="button"
             className="admin-tab-btn"
             onClick={() => window.location.assign("/admin/influencers")}
           >
-            🌟 Influencer Promo Codes
+            🌟 Influencer Promos
           </button>
         </nav>
 

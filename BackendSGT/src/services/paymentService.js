@@ -132,13 +132,26 @@ export async function submitPaymentProof(
     const cleanedCode = promoCodeParam.trim().toUpperCase();
     promoDoc = await PromoCode.findOne({ code: cleanedCode, isActive: true });
     if (!promoDoc) {
-      throw invalid("The entered promo code is invalid or has expired.", 400);
+      throw invalid("The entered offer / promo code is invalid or has expired.", 400);
+    }
+
+    if (promoDoc.maxUses > 0 && promoDoc.totalUses >= promoDoc.maxUses) {
+      throw invalid(`This offer code has reached its maximum usage limit of ${promoDoc.maxUses} uses.`, 400);
+    }
+
+    if (promoDoc.applicablePlans && promoDoc.applicablePlans !== "all" && promoDoc.applicablePlans !== plan.id) {
+      throw invalid(`This code is only valid for the ${promoDoc.applicablePlans === "vibe" ? "Vibe Plan (₹499)" : "Premium Plan (₹999)"}.`, 400);
     }
 
     const isVibe = plan.id === "vibe";
-    discountAmount = isVibe
-      ? (promoDoc.discount499 ?? 150)
-      : (promoDoc.discount999 ?? 250);
+    if (promoDoc.discountType === "PERCENTAGE") {
+      const pct = Math.min(100, Math.max(0, promoDoc.discountPercentage || 0));
+      discountAmount = pct === 100 ? originalAmount : Math.round((originalAmount * pct) / 100);
+    } else {
+      discountAmount = isVibe
+        ? (promoDoc.discount499 ?? 150)
+        : (promoDoc.discount999 ?? 250);
+    }
     finalAmount = Math.max(0, originalAmount - discountAmount);
   }
 

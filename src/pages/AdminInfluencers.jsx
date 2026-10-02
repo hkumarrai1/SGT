@@ -278,13 +278,20 @@ function AdminInfluencers() {
             className="admin-tab-btn"
             onClick={() => window.location.assign("/admin/matches")}
           >
-            💃 Dandiya Matches & Pairs
+            ✨ Dandiya Matchmaker
+          </button>
+          <button
+            type="button"
+            className="admin-tab-btn"
+            onClick={() => window.location.assign("/admin/offers")}
+          >
+            🎟️ Offer Codes
           </button>
           <button
             type="button"
             className="admin-tab-btn is-active"
           >
-            🌟 Influencer Promo Codes
+            🌟 Influencer Promos
             <span className="admin-tab-count">{summary.totalConversions} Paid</span>
           </button>
         </nav>

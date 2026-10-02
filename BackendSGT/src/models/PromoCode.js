@@ -2,25 +2,36 @@ import mongoose from "mongoose";
 
 const promoCodeSchema = new mongoose.Schema(
   {
-    influencerName: {
-      type: String,
-      required: [true, "Influencer name is required."],
-      trim: true,
-      maxlength: 120,
-    },
-    influencerEmail: {
-      type: String,
-      required: [true, "Influencer email is required."],
-      trim: true,
-      lowercase: true,
-    },
     code: {
       type: String,
-      required: [true, "Promo code is required."],
+      required: [true, "Code is required."],
       unique: true,
       uppercase: true,
       trim: true,
       index: true,
+    },
+    codeType: {
+      type: String,
+      enum: ["OFFER_CODE", "INFLUENCER"],
+      default: "OFFER_CODE",
+      index: true,
+    },
+    title: {
+      type: String,
+      trim: true,
+      maxlength: 150,
+      default: "",
+    },
+    discountType: {
+      type: String,
+      enum: ["PERCENTAGE", "FLAT"],
+      default: "PERCENTAGE",
+    },
+    discountPercentage: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
     },
     discount499: {
       type: Number,
@@ -31,6 +42,28 @@ const promoCodeSchema = new mongoose.Schema(
       type: Number,
       default: 250,
       min: 0,
+    },
+    maxUses: {
+      type: Number,
+      default: 0, // 0 means Unlimited
+      min: 0,
+    },
+    applicablePlans: {
+      type: String,
+      enum: ["all", "vibe", "premium"],
+      default: "all",
+    },
+    influencerName: {
+      type: String,
+      trim: true,
+      maxlength: 120,
+      default: "",
+    },
+    influencerEmail: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: "",
     },
     isActive: {
       type: Boolean,
@@ -64,7 +97,7 @@ const promoCodeSchema = new mongoose.Schema(
 );
 
 promoCodeSchema.index({ code: 1 }, { unique: true });
+promoCodeSchema.index({ codeType: 1, isActive: 1 });
 promoCodeSchema.index({ influencerEmail: 1 });
-promoCodeSchema.index({ isActive: 1 });
 
 export default mongoose.model("PromoCode", promoCodeSchema);

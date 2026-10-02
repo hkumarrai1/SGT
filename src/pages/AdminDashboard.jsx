@@ -319,7 +319,15 @@ function AdminDashboard() {
             className="admin-tab-btn"
             onClick={() => window.location.assign("/admin/matches")}
           >
-            <span>💃 Dandiya Matches & Pairs</span>
+            <span>✨ Dandiya Matchmaker</span>
+          </button>
+
+          <button
+            type="button"
+            className="admin-tab-btn"
+            onClick={() => window.location.assign("/admin/offers")}
+          >
+            <span>🎟️ Offer Codes</span>
           </button>
 
           <button
@@ -327,7 +335,7 @@ function AdminDashboard() {
             className="admin-tab-btn"
             onClick={() => window.location.assign("/admin/influencers")}
           >
-            <span>🌟 Influencer Promo Codes</span>
+            <span>🌟 Influencer Promos</span>
           </button>
         </div>
 

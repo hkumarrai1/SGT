@@ -30,11 +30,16 @@ import {
 } from "../controllers/adminMatchController.js";
 import {
   createInfluencer,
-  deleteInfluencer,
+  createOfferCode,
+  deleteOfferCode,
   getInfluencerConversions,
+  getOfferCodeConversions,
   listInfluencers,
+  listOfferCodes,
   previewUniqueCode,
+  previewUniqueOfferCode,
   toggleInfluencerStatus,
+  toggleOfferCodeStatus,
 } from "../controllers/promoCodeController.js";
 
 const router = Router();
@@ -135,7 +140,31 @@ router.patch(
 router.delete(
   "/influencers/:influencerId",
   requireAdmin,
-  asyncHandler(deleteInfluencer),
+  asyncHandler(deleteOfferCode),
+);
+
+// Dedicated Offer Code Management Endpoints (Percentage up to 100%, usage limits)
+router.get("/offer-codes", requireAdmin, asyncHandler(listOfferCodes));
+router.post("/offer-codes", requireAdmin, asyncHandler(createOfferCode));
+router.get(
+  "/offer-codes/generate-code",
+  requireAdmin,
+  asyncHandler(previewUniqueOfferCode),
+);
+router.get(
+  "/offer-codes/:id/conversions",
+  requireAdmin,
+  asyncHandler(getOfferCodeConversions),
+);
+router.patch(
+  "/offer-codes/:id/toggle-status",
+  requireAdmin,
+  asyncHandler(toggleOfferCodeStatus),
+);
+router.delete(
+  "/offer-codes/:id",
+  requireAdmin,
+  asyncHandler(deleteOfferCode),
 );
 
 export default router;
