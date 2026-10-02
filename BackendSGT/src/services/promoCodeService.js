@@ -10,7 +10,8 @@ function invalid(message, statusCode = 400) {
 }
 
 /**
- * Generates an uppercase unique promo code derived from the influencer's name
+ * Generates an uppercase unique promo code derived from the combination of
+ * Influencer's First Name + Numbers (e.g., PRIYA150, PRIYA50, PRIYA2024)
  * Guaranteed to have NO duplicates in DB by checking before returning.
  */
 export async function generateUniquePromoCode(influencerName) {
@@ -18,44 +19,65 @@ export async function generateUniquePromoCode(influencerName) {
     throw invalid("Influencer name is required to generate code.");
   }
 
-  // Extract first name or first word, remove spaces and non-alphanumeric characters
-  const cleanName = influencerName
-    .trim()
+  // Extract purely the FIRST NAME (alphabetic only)
+  const words = influencerName.trim().split(/\s+/);
+  let firstName = (words[0] || "")
     .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "");
+    .replace(/[^A-Z]/g, "");
 
-  const base = cleanName.slice(0, 8) || "SGT";
+  // Fallback if first word had no letters
+  if (!firstName) {
+    firstName = influencerName
+      .toUpperCase()
+      .replace(/[^A-Z]/g, "")
+      .slice(0, 8) || "SGT";
+  }
 
-  // Candidate generation list
-  const candidates = [
-    base,
-    `${base}150`,
-    `${base}SGT`,
-    `${base}DANDIYA`,
-    `${base}2024`,
-    `${base}VIP`,
+  // Keep first name clean (up to 10 chars)
+  firstName = firstName.slice(0, 10);
+
+  // Popular and clean numeric combinations
+  const numberCombinations = [
+    "150", // Reflects ₹150 discount
+    "250", // Reflects ₹250 discount
+    "50",
+    "10",
+    "20",
+    "25",
+    "99",
+    "07",
+    "11",
+    "100",
+    "2024",
+    "2025",
+    "777",
+    "999",
+    "101",
+    "77",
+    "88",
   ];
 
-  // Check candidates sequentially
-  for (const candidate of candidates) {
+  // Try popular first name + number combinations
+  for (const num of numberCombinations) {
+    const candidate = `${firstName}${num}`;
     const exists = await PromoCode.findOne({ code: candidate }).lean();
     if (!exists) {
       return candidate;
     }
   }
 
-  // If common patterns taken, generate with random alphanumeric suffixes
-  for (let i = 0; i < 50; i++) {
-    const randomSuffix = Math.floor(10 + Math.random() * 90); // 2 digits
-    const candidate = `${base}${randomSuffix}`;
+  // If common ones are taken, generate with random 2-3 digit numbers (10 to 999)
+  for (let i = 0; i < 100; i++) {
+    const randomNum = Math.floor(10 + Math.random() * 990);
+    const candidate = `${firstName}${randomNum}`;
     const exists = await PromoCode.findOne({ code: candidate }).lean();
     if (!exists) {
       return candidate;
     }
   }
 
-  // Fallback unique timestamp suffix
-  return `${base}${Date.now().toString().slice(-4)}`;
+  // Fallback timestamp 3 digits
+  return `${firstName}${Date.now().toString().slice(-3)}`;
 }
 
 /**

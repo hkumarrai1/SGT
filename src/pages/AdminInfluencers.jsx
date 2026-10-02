@@ -622,7 +622,7 @@ function AdminInfluencers() {
                   }}
                 />
                 <span style={{ fontSize: "0.72rem", color: "rgba(255, 248, 242, 0.5)" }}>
-                  If blank, the system automatically creates a unique uppercase code from their name without DB duplicates.
+                  If blank, the system automatically creates an uppercase code combining their <strong>First Name + Numbers</strong> (e.g. PRIYA150, PRIYA50, PRIYA2024) with guaranteed zero DB duplicates.
                 </span>
               </div>
 
