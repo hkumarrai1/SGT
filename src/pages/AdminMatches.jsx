@@ -153,6 +153,34 @@ function AdminMatches() {
     }
   };
 
+  const handleDirectUnblockEmail = async () => {
+    if (!directBlockEmail.trim()) return;
+    setActionInProgress(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/users/unblock-by-email`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: directBlockEmail.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to unblock email.");
+
+      setAlert({ type: "success", message: data.message });
+      setShowDirectBlockModal(false);
+      setDirectBlockEmail("");
+      loadMatches();
+    } catch (err) {
+      setAlert({ type: "error", message: err.message });
+    } finally {
+      setActionInProgress(false);
+    }
+  };
+
   const handleDirectBlockEmail = async (e) => {
     e.preventDefault();
     if (!directBlockEmail.trim()) return;
@@ -814,9 +842,9 @@ function AdminMatches() {
           onClick={() => !actionInProgress && setShowDirectBlockModal(false)}
         >
           <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>🚫 Block User by Email</h3>
+            <h3>🛡️ Manage Student Access (Block / Unblock by Email)</h3>
             <p>
-              Enter the student&apos;s registered email to immediately suspend their account and cancel any active pairings.
+              Enter the student&apos;s registered email to suspend or restore their account access.
             </p>
 
             <form onSubmit={handleDirectBlockEmail} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -844,7 +872,7 @@ function AdminMatches() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
                 <label style={{ fontSize: "0.8rem", color: "rgba(255, 248, 242, 0.7)" }}>
-                  Suspension Reason:
+                  Suspension Reason (Only needed when blocking):
                 </label>
                 <textarea
                   value={blockReason}
@@ -853,7 +881,7 @@ function AdminMatches() {
                 />
               </div>
 
-              <div className="admin-modal-actions">
+              <div className="admin-modal-actions" style={{ flexWrap: "wrap" }}>
                 <button
                   type="button"
                   className="admin-modal-btn-cancel"
@@ -863,11 +891,21 @@ function AdminMatches() {
                   Cancel
                 </button>
                 <button
+                  type="button"
+                  className="admin-btn-approve"
+                  onClick={handleDirectUnblockEmail}
+                  disabled={actionInProgress || !directBlockEmail.trim()}
+                  style={{ padding: "0.6rem 1.2rem" }}
+                >
+                  {actionInProgress ? "Restoring..." : "✓ Unblock Account"}
+                </button>
+                <button
                   type="submit"
                   className="admin-btn-reject"
                   disabled={actionInProgress || !directBlockEmail.trim()}
+                  style={{ padding: "0.6rem 1.2rem" }}
                 >
-                  {actionInProgress ? "Blocking..." : "Block Account"}
+                  {actionInProgress ? "Suspending..." : "🚫 Block Account"}
                 </button>
               </div>
             </form>

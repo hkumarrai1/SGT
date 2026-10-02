@@ -18,8 +18,10 @@ import {
   blockUser,
   blockUserByEmail,
   listMatches,
+  listSuspendedUsers,
   nullifyMatch,
   unblockUser,
+  unblockUserByEmail,
   unpairMatch,
 } from "../controllers/adminMatchController.js";
 
@@ -70,12 +72,18 @@ router.patch(
 );
 
 // User Suspension / Blocking Endpoints
+router.get("/users/suspended", requireAdmin, asyncHandler(listSuspendedUsers));
 router.patch("/users/:userId/block", requireAdmin, asyncHandler(blockUser));
 router.patch("/users/:userId/unblock", requireAdmin, asyncHandler(unblockUser));
 router.post(
   "/users/block-by-email",
   requireAdmin,
   asyncHandler(blockUserByEmail),
+);
+router.post(
+  "/users/unblock-by-email",
+  requireAdmin,
+  asyncHandler(unblockUserByEmail),
 );
 
 export default router;

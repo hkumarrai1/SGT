@@ -5,6 +5,8 @@ import {
   blockUserAdmin,
   unblockUserAdmin,
   blockUserByEmailAdmin,
+  unblockUserByEmailAdmin,
+  listSuspendedUsersAdmin,
 } from "../services/adminMatchService.js";
 
 export async function listMatches(req, res) {
@@ -44,4 +46,18 @@ export async function blockUserByEmail(req, res) {
   const { email, reason } = req.body || {};
   const result = await blockUserByEmailAdmin(email, reason);
   return res.json(result);
+}
+
+export async function unblockUserByEmail(req, res) {
+  const { email } = req.body || {};
+  const result = await unblockUserByEmailAdmin(email);
+  return res.json(result);
+}
+
+export async function listSuspendedUsers(req, res) {
+  const users = await listSuspendedUsersAdmin();
+  return res.json({
+    success: true,
+    users,
+  });
 }

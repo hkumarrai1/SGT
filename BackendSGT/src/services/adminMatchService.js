@@ -252,3 +252,43 @@ export async function blockUserByEmailAdmin(email, reason) {
 
   return blockUserAdmin(user._id, reason);
 }
+
+export async function unblockUserByEmailAdmin(email) {
+  const normalizedEmail = (email || "").trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
+  if (!user) throw invalid(`No user account found with email "${normalizedEmail}".`, 404);
+
+  return unblockUserAdmin(user._id);
+}
+
+export async function listSuspendedUsersAdmin() {
+  const users = await User.find({ isBlocked: true })
+    .select("email isBlocked blockReason blockedAt createdAt")
+    .sort({ blockedAt: -1 })
+    .lean();
+
+  const userIds = users.map((u) => u._id);
+  const profiles = await Profile.find({ userId: { $in: userIds } })
+    .select("userId fullName anonymousAlias studentId institutionId course academicYear")
+    .populate("institutionId", "name shortName")
+    .lean();
+
+  const profileMap = new Map();
+  profiles.forEach((p) => profileMap.set(String(p.userId), p));
+
+  return users.map((u) => {
+    const pr = profileMap.get(String(u._id));
+    return {
+      _id: u._id,
+      email: u.email,
+      blockReason: u.blockReason,
+      blockedAt: u.blockedAt,
+      fullName: pr?.fullName || "Not provided",
+      anonymousAlias: pr?.anonymousAlias || "Festival_Vibe",
+      studentId: pr?.studentId || "N/A",
+      collegeName: pr?.institutionId?.name || "Campus",
+      course: pr?.course || "",
+      academicYear: pr?.academicYear || "",
+    };
+  });
+}
