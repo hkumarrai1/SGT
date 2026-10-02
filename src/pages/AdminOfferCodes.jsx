@@ -640,7 +640,7 @@ function AdminOfferCodes() {
           <div className="admin-modal-overlay" onClick={() => setShowAddModal(false)}>
             <div
               className="admin-modal-card"
-              style={{ maxWidth: "580px" }}
+              style={{ maxWidth: "600px" }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="admin-modal-header">
@@ -659,13 +659,20 @@ function AdminOfferCodes() {
 
               <form onSubmit={handleCreateOfferCode} className="admin-modal-form">
                 {/* Code Name & Auto Generator */}
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <label htmlFor="codeName">Offer Code String *</label>
+                <div className="admin-form-group">
+                  <div className="admin-form-label">
+                    <span>Offer Code String *</span>
                     <button
                       type="button"
-                      className="admin-inf-code-btn"
-                      style={{ background: "none", border: "none", color: "#f4c66c", cursor: "pointer", fontWeight: "bold", fontSize: "0.8rem" }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#f4c66c",
+                        cursor: "pointer",
+                        fontWeight: "700",
+                        fontSize: "0.78rem",
+                        textDecoration: "underline",
+                      }}
                       onClick={handleAutoGenerateCode}
                       disabled={isGeneratingCode}
                     >
@@ -675,6 +682,7 @@ function AdminOfferCodes() {
                   <input
                     id="codeName"
                     type="text"
+                    className="admin-form-input"
                     placeholder="e.g. DANDIYA50, FREESTUDENT, SGT100"
                     value={codeName}
                     onChange={(e) =>
@@ -685,17 +693,18 @@ function AdminOfferCodes() {
                     required
                     autoFocus
                   />
-                  <small style={{ color: "rgba(255, 248, 242, 0.5)", fontSize: "0.72rem" }}>
-                    Unique code entered by students during checkout.
-                  </small>
+                  <span className="admin-form-helper">
+                    Unique code entered by students during checkout (e.g. FREEDANDIYA, SGT50).
+                  </span>
                 </div>
 
                 {/* Campaign Title */}
-                <div>
-                  <label htmlFor="title">Campaign / Offer Title</label>
+                <div className="admin-form-group">
+                  <label className="admin-form-label" htmlFor="title">Campaign / Offer Title</label>
                   <input
                     id="title"
                     type="text"
+                    className="admin-form-input"
                     placeholder="e.g. Navratri 50% Flash Sale or VIP 100% Free Pass"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -703,8 +712,8 @@ function AdminOfferCodes() {
                 </div>
 
                 {/* Discount Mode Selector */}
-                <div>
-                  <label>Discount Mode</label>
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Discount Mode</label>
                   <div className="offer-chips-wrap">
                     <button
                       type="button"
@@ -773,22 +782,24 @@ function AdminOfferCodes() {
                 {/* Flat Rupee Mode */}
                 {discountType === "FLAT" && (
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                    <div>
-                      <label htmlFor="discount499">₹499 Plan Discount (₹)</label>
+                    <div className="admin-form-group">
+                      <label className="admin-form-label" htmlFor="discount499">₹499 Plan Discount (₹)</label>
                       <input
                         id="discount499"
                         type="number"
+                        className="admin-form-input"
                         min="0"
                         max="499"
                         value={discount499}
                         onChange={(e) => setDiscount499(e.target.value)}
                       />
                     </div>
-                    <div>
-                      <label htmlFor="discount999">₹999 Plan Discount (₹)</label>
+                    <div className="admin-form-group">
+                      <label className="admin-form-label" htmlFor="discount999">₹999 Plan Discount (₹)</label>
                       <input
                         id="discount999"
                         type="number"
+                        className="admin-form-input"
                         min="0"
                         max="999"
                         value={discount999}
@@ -799,9 +810,9 @@ function AdminOfferCodes() {
                 )}
 
                 {/* Usage Limit ("Kitne times use honge wo") */}
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <label htmlFor="maxUses">Usage Limit (Kitne Times Use Honge)</label>
+                <div className="admin-form-group">
+                  <div className="admin-form-label">
+                    <span>Usage Limit (Kitne Times Use Honge)</span>
                     <label style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", fontSize: "0.78rem" }}>
                       <input
                         type="checkbox"
@@ -817,6 +828,7 @@ function AdminOfferCodes() {
                       <input
                         id="maxUses"
                         type="number"
+                        className="admin-form-input"
                         min="1"
                         max="100000"
                         placeholder="e.g. 10 or 50 times"
@@ -841,27 +853,20 @@ function AdminOfferCodes() {
                       </div>
                     </div>
                   ) : (
-                    <div style={{ padding: "0.6rem 0.8rem", background: "rgba(74, 222, 128, 0.1)", borderRadius: "8px", border: "1px solid rgba(74, 222, 128, 0.3)", color: "#4ade80", fontSize: "0.82rem" }}>
+                    <div style={{ padding: "0.7rem 0.9rem", background: "rgba(74, 222, 128, 0.1)", borderRadius: "10px", border: "1px solid rgba(74, 222, 128, 0.3)", color: "#4ade80", fontSize: "0.85rem" }}>
                       ✓ This code can be used unlimited times until manually disabled.
                     </div>
                   )}
                 </div>
 
                 {/* Plan Scope */}
-                <div>
-                  <label htmlFor="applicablePlans">Applicable Plans</label>
+                <div className="admin-form-group">
+                  <label className="admin-form-label" htmlFor="applicablePlans">Applicable Plans</label>
                   <select
                     id="applicablePlans"
+                    className="admin-form-select"
                     value={applicablePlans}
                     onChange={(e) => setApplicablePlans(e.target.value)}
-                    style={{
-                      width: "100%",
-                      padding: "0.8rem",
-                      borderRadius: "10px",
-                      background: "rgba(255, 255, 255, 0.08)",
-                      color: "#fff",
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                    }}
                   >
                     <option value="all">All Plans (Both ₹499 &amp; ₹999)</option>
                     <option value="vibe">Vibe Plan Only (₹499)</option>
@@ -870,28 +875,29 @@ function AdminOfferCodes() {
                 </div>
 
                 {/* Notes */}
-                <div>
-                  <label htmlFor="notes">Internal Notes (Optional)</label>
+                <div className="admin-form-group">
+                  <label className="admin-form-label" htmlFor="notes">Internal Notes (Optional)</label>
                   <input
                     id="notes"
                     type="text"
+                    className="admin-form-input"
                     placeholder="e.g. VIP Pass for College Head or Fest Team"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                   />
                 </div>
 
-                <div className="admin-modal-actions" style={{ marginTop: "1.25rem" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "1rem" }}>
                   <button
                     type="button"
-                    className="admin-modal-cancel-btn"
+                    className="admin-btn-cancel"
                     onClick={() => setShowAddModal(false)}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="admin-modal-confirm-btn"
+                    className="admin-btn-confirm"
                     disabled={actionInProgress || !codeName.trim()}
                   >
                     {actionInProgress ? "Creating..." : "Save & Activate Offer Code →"}
