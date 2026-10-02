@@ -175,7 +175,6 @@ function ProfilePhoto() {
                 className="photo-file-input"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
-                capture="user"
                 onChange={chooseFile}
               />
               <button
