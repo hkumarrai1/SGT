@@ -1,40 +1,42 @@
 import { connectDatabase } from "../config/db.js";
 import { validateEnv } from "../config/env.js";
 import Institution from "../models/Institution.js";
+import { UNIVERSITIES_LIST } from "../data/institutionsList.js";
 
-const INSTITUTIONS_LIST = [
-  { name: "Delhi Technical Campus", shortName: "DTC", city: "Greater Noida" },
-  { name: "Delhi University (DU)", shortName: "DU", city: "Delhi" },
-  { name: "Guru Gobind Singh Indraprastha University", shortName: "GGSIPU", city: "Delhi" },
-  { name: "Delhi Technological University", shortName: "DTU", city: "Delhi" },
-  { name: "Netaji Subhas University of Technology", shortName: "NSUT", city: "Delhi" },
-  { name: "Indira Gandhi Delhi Technical University for Women", shortName: "IGDTUW", city: "Delhi" },
-  { name: "IIT Delhi", shortName: "IITD", city: "New Delhi" },
-  { name: "Amity University", shortName: "Amity", city: "Noida" },
-  { name: "Galgotias University", shortName: "Galgotias", city: "Greater Noida" },
-  { name: "Bennett University", shortName: "Bennett", city: "Greater Noida" },
-  { name: "Sharda University", shortName: "Sharda", city: "Greater Noida" },
-  { name: "Jamia Millia Islamia", shortName: "JMI", city: "New Delhi" },
-  { name: "Jawaharlal Nehru University", shortName: "JNU", city: "New Delhi" },
-  { name: "Manipal University", shortName: "Manipal", city: "Jaipur" },
-  { name: "SRM Institute of Science and Technology", shortName: "SRM", city: "NCR" },
-  { name: "Symbiosis International University", shortName: "SIU", city: "Noida / Pune" },
-  { name: "All Other Universities / Organizations", shortName: "Other", city: "India" },
-];
+export async function seedInstitutions() {
+  console.log(`Starting institutions seed with ${UNIVERSITIES_LIST.length} entries...`);
+  
+  const bulkOps = UNIVERSITIES_LIST.map((inst) => ({
+    updateOne: {
+      filter: { name: inst.name },
+      update: {
+        $set: {
+          name: inst.name,
+          shortName: inst.shortName,
+          city: inst.city,
+          active: true,
+        },
+      },
+      upsert: true,
+    },
+  }));
 
-try {
-  validateEnv();
-  await connectDatabase();
-  for (const inst of INSTITUTIONS_LIST) {
-    await Institution.findOneAndUpdate(
-      { name: inst.name },
-      { ...inst, active: true },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
-    );
+  if (bulkOps.length > 0) {
+    const result = await Institution.bulkWrite(bulkOps);
+    console.log(`Seed complete: ${result.upsertedCount} inserted, ${result.modifiedCount} updated.`);
   }
-  console.log(`Institution seed complete: ${INSTITUTIONS_LIST.length} institutions seeded/updated.`);
-  process.exit(0);
-} catch (error) {
-  console.error("Institution seed failed:", error?.message || error);
-  process.exitCode = 1;
+}
+
+// Run directly if script is executed
+if (process.argv[1]?.endsWith("seedInstitution.js")) {
+  try {
+    validateEnv();
+    await connectDatabase();
+    await seedInstitutions();
+    console.log("Seeding finished successfully.");
+    process.exit(0);
+  } catch (error) {
+    console.error("Institution seed failed:", error?.message || error);
+    process.exit(1);
+  }
 }
