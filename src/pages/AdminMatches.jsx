@@ -5,14 +5,64 @@ import { API_URL } from "../config";
 import "./AdminDashboard.css";
 import "./AdminMatches.css";
 
+function calculateLiveCompatScore(st1, st2) {
+  if (!st1 || !st2) return { score: 50, sharedTags: [] };
+  let score = 55; // baseline festival affinity
+
+  // Course / branch synergy
+  if (st1.course && st2.course && st1.course.toLowerCase() === st2.course.toLowerCase()) {
+    score += 10;
+  }
+
+  // Academic year proximity
+  if (st1.academicYear && st2.academicYear) {
+    const y1 = parseInt(st1.academicYear.replace(/\D/g, ""), 10) || 0;
+    const y2 = parseInt(st2.academicYear.replace(/\D/g, ""), 10) || 0;
+    if (y1 && y2) {
+      const diff = Math.abs(y1 - y2);
+      if (diff === 0) score += 10;
+      else if (diff === 1) score += 5;
+    }
+  }
+
+  // Shared tags from questionnaire
+  const tags1 = new Set((st1.tags || []).map((t) => t.toLowerCase()));
+  const tags2 = (st2.tags || []).map((t) => t.toLowerCase());
+  const shared = (st2.tags || []).filter((t) => tags1.has(t.toLowerCase()));
+  score += Math.min(25, shared.length * 8);
+
+  // College match
+  if (st1.collegeName && st2.collegeName && st1.collegeName.toLowerCase() === st2.collegeName.toLowerCase()) {
+    score += 10;
+  }
+
+  return {
+    score: Math.min(99, Math.max(50, score)),
+    sharedTags: shared,
+  };
+}
+
 function AdminMatches() {
   const token = localStorage.getItem("sgt_admin_token");
+  const [viewMode, setViewMode] = useState("STUDIO"); // "STUDIO" or "REGISTRY"
   const [matches, setMatches] = useState([]);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [actionInProgress, setActionInProgress] = useState(false);
+
+  // Dual Pool (Side-by-Side Studio) state
+  const [dualPool, setDualPool] = useState({ females: [], males: [], counts: {} });
+  const [isLoadingDualPool, setIsLoadingDualPool] = useState(true);
+  const [femaleSearch, setFemaleSearch] = useState("");
+  const [maleSearch, setMaleSearch] = useState("");
+  const [poolAvailabilityFilter, setPoolAvailabilityFilter] = useState("ALL"); // "ALL", "UNMATCHED_ONLY", "PAIRED_ONLY"
+  const [selectedFemale, setSelectedFemale] = useState(null);
+  const [selectedMale, setSelectedMale] = useState(null);
+  const [studioInstantReveal, setStudioInstantReveal] = useState(false);
+  const [studioCustomHeadline, setStudioCustomHeadline] = useState("");
+  const [expandedProfileId, setExpandedProfileId] = useState(null);
 
   // Modals state
   const [nullifyModal, setNullifyModal] = useState(null);
@@ -22,7 +72,7 @@ function AdminMatches() {
   const [directBlockEmail, setDirectBlockEmail] = useState("");
   const [showDirectBlockModal, setShowDirectBlockModal] = useState(false);
 
-  // Manual Pair Creator state
+  // Manual Pair Creator modal state (legacy quick wizard)
   const [showManualPairModal, setShowManualPairModal] = useState(false);
   const [student1Search, setStudent1Search] = useState("");
   const [studentsList, setStudentsList] = useState([]);
@@ -42,7 +92,29 @@ function AdminMatches() {
       return;
     }
     loadMatches();
+    loadDualPool();
   }, [token]);
+
+  const loadDualPool = async () => {
+    setIsLoadingDualPool(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/matches/dual-pool`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDualPool({
+          females: data.females || [],
+          males: data.males || [],
+          counts: data.counts || {},
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load dual pool:", err);
+    } finally {
+      setIsLoadingDualPool(false);
+    }
+  };
 
   const loadMatches = async () => {
     setIsLoading(true);
@@ -307,6 +379,85 @@ function AdminMatches() {
     }
   };
 
+  const handleExecuteStudioPair = async () => {
+    if (!selectedFemale || !selectedMale) return;
+    setActionInProgress(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/matches/manual-pair`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user1Id: selectedFemale.userId,
+          user2Id: selectedMale.userId,
+          instantReveal: studioInstantReveal,
+          customHeadline: studioCustomHeadline.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to create pair.");
+
+      setAlert({ type: "success", message: data.message });
+      setSelectedFemale(null);
+      setSelectedMale(null);
+      setStudioCustomHeadline("");
+      loadDualPool();
+      loadMatches();
+    } catch (err) {
+      setAlert({ type: "error", message: err.message });
+    } finally {
+      setActionInProgress(false);
+    }
+  };
+
+  const filteredFemales = useMemo(() => {
+    return (dualPool.females || []).filter((st) => {
+      if (poolAvailabilityFilter === "UNMATCHED_ONLY" && st.hasActiveMatch) return false;
+      if (poolAvailabilityFilter === "PAIRED_ONLY" && !st.hasActiveMatch) return false;
+
+      if (femaleSearch.trim()) {
+        const q = femaleSearch.toLowerCase();
+        return (
+          st.fullName.toLowerCase().includes(q) ||
+          st.email.toLowerCase().includes(q) ||
+          st.studentId.toLowerCase().includes(q) ||
+          st.course.toLowerCase().includes(q) ||
+          st.anonymousAlias.toLowerCase().includes(q) ||
+          (st.tags || []).some((t) => t.toLowerCase().includes(q))
+        );
+      }
+      return true;
+    });
+  }, [dualPool.females, poolAvailabilityFilter, femaleSearch]);
+
+  const filteredMales = useMemo(() => {
+    return (dualPool.males || []).filter((st) => {
+      if (poolAvailabilityFilter === "UNMATCHED_ONLY" && st.hasActiveMatch) return false;
+      if (poolAvailabilityFilter === "PAIRED_ONLY" && !st.hasActiveMatch) return false;
+
+      if (maleSearch.trim()) {
+        const q = maleSearch.toLowerCase();
+        return (
+          st.fullName.toLowerCase().includes(q) ||
+          st.email.toLowerCase().includes(q) ||
+          st.studentId.toLowerCase().includes(q) ||
+          st.course.toLowerCase().includes(q) ||
+          st.anonymousAlias.toLowerCase().includes(q) ||
+          (st.tags || []).some((t) => t.toLowerCase().includes(q))
+        );
+      }
+      return true;
+    });
+  }, [dualPool.males, poolAvailabilityFilter, maleSearch]);
+
+  const liveMatchMetrics = useMemo(() => {
+    if (!selectedFemale || !selectedMale) return null;
+    return calculateLiveCompatScore(selectedFemale, selectedMale);
+  }, [selectedFemale, selectedMale]);
+
   // Filtered matches
   const filteredMatches = useMemo(() => {
     return matches.filter((m) => {
@@ -475,8 +626,560 @@ function AdminMatches() {
           </div>
         )}
 
-        {/* 4 Stats Cards */}
-        <div className="admin-match-stats-grid">
+        {/* View Mode Switcher */}
+        <div className="admin-viewmode-switcher">
+          <button
+            type="button"
+            className={`admin-viewmode-btn ${viewMode === "STUDIO" ? "is-active" : ""}`}
+            onClick={() => setViewMode("STUDIO")}
+          >
+            ⚡ Split Matchmaking Studio (Girls 🌸 ↔ Boys ⚡)
+            <span className="admin-badge-count">
+              {dualPool.counts?.unmatchedFemales || 0}F / {dualPool.counts?.unmatchedMales || 0}M Available
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`admin-viewmode-btn ${viewMode === "REGISTRY" ? "is-active" : ""}`}
+            onClick={() => setViewMode("REGISTRY")}
+          >
+            📋 Match Registry & Audit List ({matches.length})
+          </button>
+        </div>
+
+        {/* ==========================================================
+            MODE 1: SPLIT MATCHMAKER STUDIO (FEMALE 🌸 ↔ MALE ⚡)
+            ========================================================== */}
+        {viewMode === "STUDIO" && (
+          <section className="admin-studio-wrapper">
+            {/* Studio Filter Bar */}
+            <div className="admin-studio-topbar">
+              <div className="admin-studio-filter-pills">
+                <button
+                  type="button"
+                  className={`admin-studio-pill ${poolAvailabilityFilter === "ALL" ? "is-active" : ""}`}
+                  onClick={() => setPoolAvailabilityFilter("ALL")}
+                >
+                  All Profiles ({dualPool.counts?.females || 0}F / {dualPool.counts?.males || 0}M)
+                </button>
+                <button
+                  type="button"
+                  className={`admin-studio-pill ${poolAvailabilityFilter === "UNMATCHED_ONLY" ? "is-active" : ""}`}
+                  onClick={() => setPoolAvailabilityFilter("UNMATCHED_ONLY")}
+                >
+                  🟢 Available Only ({dualPool.counts?.unmatchedFemales || 0}F / {dualPool.counts?.unmatchedMales || 0}M)
+                </button>
+                <button
+                  type="button"
+                  className={`admin-studio-pill ${poolAvailabilityFilter === "PAIRED_ONLY" ? "is-active" : ""}`}
+                  onClick={() => setPoolAvailabilityFilter("PAIRED_ONLY")}
+                >
+                  ✨ Already Paired ({(dualPool.counts?.females || 0) - (dualPool.counts?.unmatchedFemales || 0)}F)
+                </button>
+              </div>
+
+              <div className="admin-studio-top-actions">
+                <button
+                  type="button"
+                  className="admin-studio-refresh-btn"
+                  onClick={() => {
+                    loadDualPool();
+                    loadMatches();
+                  }}
+                  disabled={isLoadingDualPool}
+                >
+                  {isLoadingDualPool ? "🔄 Refreshing..." : "🔄 Reload Campus Pool"}
+                </button>
+              </div>
+            </div>
+
+            {/* Side-by-Side 2 Column Arena */}
+            <div className="admin-studio-arena">
+              {/* LEFT COLUMN: FEMALES */}
+              <div className="admin-studio-col female-col">
+                <div className="admin-studio-col-header female-header">
+                  <div className="admin-col-title-row">
+                    <span className="admin-gender-icon-large">🌸</span>
+                    <div>
+                      <h3>Female Students</h3>
+                      <span className="admin-col-counter">
+                        {filteredFemales.length} students {femaleSearch && "(filtered)"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="admin-studio-search-wrap">
+                    <input
+                      type="text"
+                      placeholder="Search girls by name, email, roll, branch, vibe tags..."
+                      value={femaleSearch}
+                      onChange={(e) => setFemaleSearch(e.target.value)}
+                      className="admin-studio-search-input"
+                    />
+                    {femaleSearch && (
+                      <button
+                        type="button"
+                        className="admin-search-clear"
+                        onClick={() => setFemaleSearch("")}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="admin-studio-cards-container">
+                  {isLoadingDualPool ? (
+                    <div className="admin-studio-loading">
+                      <Loader />
+                      <p>Loading female campus pool...</p>
+                    </div>
+                  ) : filteredFemales.length === 0 ? (
+                    <div className="admin-studio-empty">
+                      <p>No female students found matching your search/filters.</p>
+                    </div>
+                  ) : (
+                    filteredFemales.map((st) => {
+                      const isSelected = selectedFemale?.userId === st.userId;
+                      const isExpanded = expandedProfileId === st.userId;
+
+                      return (
+                        <div
+                          key={st.userId}
+                          className={`admin-studio-card female-card ${isSelected ? "is-selected" : ""}`}
+                          onClick={() => {
+                            if (isSelected) setSelectedFemale(null);
+                            else setSelectedFemale(st);
+                          }}
+                        >
+                          <div className="admin-card-head">
+                            <div className="admin-card-avatar-wrap">
+                              {st.profilePhoto ? (
+                                <img src={st.profilePhoto} alt="" className="admin-card-avatar" />
+                              ) : (
+                                <div className="admin-card-avatar-empty female-empty">
+                                  {st.fullName?.[0] || "F"}
+                                </div>
+                              )}
+                              <span className="admin-avatar-gender-dot female" />
+                            </div>
+
+                            <div className="admin-card-header-info">
+                              <div className="admin-card-name-row">
+                                <strong className="admin-card-name">{st.fullName}</strong>
+                                {st.verificationStatus === "VERIFIED" && (
+                                  <span className="admin-verified-badge" title="ID Verified">
+                                    ✓ Verified
+                                  </span>
+                                )}
+                              </div>
+                              <div className="admin-card-alias-row">
+                                <span className="admin-alias-pill">🎭 {st.anonymousAlias}</span>
+                                {st.hasActiveMatch ? (
+                                  <span className="admin-status-pill paired">✨ Paired</span>
+                                ) : (
+                                  <span className="admin-status-pill available">🟢 Available</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="admin-card-select-radio">
+                              <span className={`admin-radio-circle ${isSelected ? "is-checked" : ""}`}>
+                                {isSelected ? "✓" : ""}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="admin-card-body">
+                            <div className="admin-card-meta-line">
+                              <span>✉️ {st.email}</span>
+                              {st.studentId && <span>• ID: <strong>{st.studentId}</strong></span>}
+                            </div>
+                            <div className="admin-card-meta-line">
+                              <span>🏛️ {st.collegeName}</span>
+                            </div>
+                            <div className="admin-card-meta-line">
+                              <span>🎓 {st.course} {st.academicYear ? `· ${st.academicYear}` : ""}</span>
+                              <span className={`admin-pay-pill ${st.paymentStatus.toLowerCase()}`}>
+                                {st.paymentStatus === "PAID" ? "💳 Paid" : "Free Plan"}
+                              </span>
+                            </div>
+
+                            {/* Tags list */}
+                            {st.tags && st.tags.length > 0 && (
+                              <div className="admin-card-tags">
+                                {st.tags.map((tag, idx) => (
+                                  <span key={idx} className="admin-tag-chip">
+                                    #{tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Expandable Accordion for full profile & traits */}
+                            <div
+                              className="admin-card-expand-toggle"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedProfileId(isExpanded ? null : st.userId);
+                              }}
+                            >
+                              <span>{isExpanded ? "▲ Hide Full Profile & Traits" : "▼ View Full Profile & Traits"}</span>
+                            </div>
+
+                            {isExpanded && (
+                              <div className="admin-card-expanded-details" onClick={(e) => e.stopPropagation()}>
+                                {st.personalityFeatures && Object.keys(st.personalityFeatures).length > 0 ? (
+                                  <div className="admin-traits-grid">
+                                    {Object.entries(st.personalityFeatures).map(([k, v]) => (
+                                      <div key={k} className="admin-trait-item">
+                                        <span className="admin-trait-key">{k}:</span>
+                                        <span className="admin-trait-val">{String(v)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="admin-no-traits">Personality questionnaire features loaded.</p>
+                                )}
+                                <div className="admin-profile-date">
+                                  Joined: {new Date(st.createdAt).toLocaleDateString()}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: MALES */}
+              <div className="admin-studio-col male-col">
+                <div className="admin-studio-col-header male-header">
+                  <div className="admin-col-title-row">
+                    <span className="admin-gender-icon-large">⚡</span>
+                    <div>
+                      <h3>Male Students</h3>
+                      <span className="admin-col-counter">
+                        {filteredMales.length} students {maleSearch && "(filtered)"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="admin-studio-search-wrap">
+                    <input
+                      type="text"
+                      placeholder="Search boys by name, email, roll, branch, vibe tags..."
+                      value={maleSearch}
+                      onChange={(e) => setMaleSearch(e.target.value)}
+                      className="admin-studio-search-input"
+                    />
+                    {maleSearch && (
+                      <button
+                        type="button"
+                        className="admin-search-clear"
+                        onClick={() => setMaleSearch("")}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="admin-studio-cards-container">
+                  {isLoadingDualPool ? (
+                    <div className="admin-studio-loading">
+                      <Loader />
+                      <p>Loading male campus pool...</p>
+                    </div>
+                  ) : filteredMales.length === 0 ? (
+                    <div className="admin-studio-empty">
+                      <p>No male students found matching your search/filters.</p>
+                    </div>
+                  ) : (
+                    filteredMales.map((st) => {
+                      const isSelected = selectedMale?.userId === st.userId;
+                      const isExpanded = expandedProfileId === st.userId;
+
+                      // Live Dynamic Compatibility Calculation against Selected Female
+                      let liveCompat = null;
+                      if (selectedFemale) {
+                        liveCompat = calculateLiveCompatScore(selectedFemale, st);
+                      }
+
+                      const scoreColor =
+                        liveCompat?.score >= 80
+                          ? "#4ade80"
+                          : liveCompat?.score >= 65
+                          ? "#fbbf24"
+                          : "#f87171";
+
+                      return (
+                        <div
+                          key={st.userId}
+                          className={`admin-studio-card male-card ${isSelected ? "is-selected" : ""}`}
+                          onClick={() => {
+                            if (isSelected) setSelectedMale(null);
+                            else setSelectedMale(st);
+                          }}
+                        >
+                          <div className="admin-card-head">
+                            <div className="admin-card-avatar-wrap">
+                              {st.profilePhoto ? (
+                                <img src={st.profilePhoto} alt="" className="admin-card-avatar" />
+                              ) : (
+                                <div className="admin-card-avatar-empty male-empty">
+                                  {st.fullName?.[0] || "M"}
+                                </div>
+                              )}
+                              <span className="admin-avatar-gender-dot male" />
+                            </div>
+
+                            <div className="admin-card-header-info">
+                              <div className="admin-card-name-row">
+                                <strong className="admin-card-name">{st.fullName}</strong>
+                                {st.verificationStatus === "VERIFIED" && (
+                                  <span className="admin-verified-badge" title="ID Verified">
+                                    ✓ Verified
+                                  </span>
+                                )}
+                              </div>
+                              <div className="admin-card-alias-row">
+                                <span className="admin-alias-pill">🎭 {st.anonymousAlias}</span>
+                                {st.hasActiveMatch ? (
+                                  <span className="admin-status-pill paired">✨ Paired</span>
+                                ) : (
+                                  <span className="admin-status-pill available">🟢 Available</span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="admin-card-right-action">
+                              {liveCompat && (
+                                <span
+                                  className="admin-live-compat-chip"
+                                  style={{ borderColor: scoreColor, color: scoreColor }}
+                                >
+                                  ⚡ {liveCompat.score}%
+                                </span>
+                              )}
+                              <span className={`admin-radio-circle ${isSelected ? "is-checked" : ""}`}>
+                                {isSelected ? "✓" : ""}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="admin-card-body">
+                            <div className="admin-card-meta-line">
+                              <span>✉️ {st.email}</span>
+                              {st.studentId && <span>• ID: <strong>{st.studentId}</strong></span>}
+                            </div>
+                            <div className="admin-card-meta-line">
+                              <span>🏛️ {st.collegeName}</span>
+                            </div>
+                            <div className="admin-card-meta-line">
+                              <span>🎓 {st.course} {st.academicYear ? `· ${st.academicYear}` : ""}</span>
+                              <span className={`admin-pay-pill ${st.paymentStatus.toLowerCase()}`}>
+                                {st.paymentStatus === "PAID" ? "💳 Paid" : "Free Plan"}
+                              </span>
+                            </div>
+
+                            {/* Tags list */}
+                            {st.tags && st.tags.length > 0 && (
+                              <div className="admin-card-tags">
+                                {st.tags.map((tag, idx) => (
+                                  <span key={idx} className="admin-tag-chip">
+                                    #{tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Expandable Accordion for full profile & traits */}
+                            <div
+                              className="admin-card-expand-toggle"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedProfileId(isExpanded ? null : st.userId);
+                              }}
+                            >
+                              <span>{isExpanded ? "▲ Hide Full Profile & Traits" : "▼ View Full Profile & Traits"}</span>
+                            </div>
+
+                            {isExpanded && (
+                              <div className="admin-card-expanded-details" onClick={(e) => e.stopPropagation()}>
+                                {st.personalityFeatures && Object.keys(st.personalityFeatures).length > 0 ? (
+                                  <div className="admin-traits-grid">
+                                    {Object.entries(st.personalityFeatures).map(([k, v]) => (
+                                      <div key={k} className="admin-trait-item">
+                                        <span className="admin-trait-key">{k}:</span>
+                                        <span className="admin-trait-val">{String(v)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="admin-no-traits">Personality questionnaire features loaded.</p>
+                                )}
+                                <div className="admin-profile-date">
+                                  Joined: {new Date(st.createdAt).toLocaleDateString()}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* STICKY INTERACTIVE MATCH BRIDGE (BOTTOM DOCK) */}
+            {(selectedFemale || selectedMale) && (
+              <div className="admin-studio-bridge-dock">
+                <div className="admin-bridge-dock-inner">
+                  {/* Female Slot */}
+                  <div className="admin-bridge-slot">
+                    {selectedFemale ? (
+                      <div className="admin-bridge-user-selected female-border">
+                        <div className="admin-bridge-avatar-wrap">
+                          {selectedFemale.profilePhoto ? (
+                            <img src={selectedFemale.profilePhoto} alt="" className="admin-bridge-avatar" />
+                          ) : (
+                            <div className="admin-bridge-avatar-empty female">
+                              {selectedFemale.fullName?.[0] || "F"}
+                            </div>
+                          )}
+                        </div>
+                        <div className="admin-bridge-user-info">
+                          <span className="admin-bridge-role-label">🌸 Selected Female</span>
+                          <strong>{selectedFemale.fullName}</strong>
+                          <span>{selectedFemale.course || "Campus"}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="admin-bridge-slot-remove"
+                          onClick={() => setSelectedFemale(null)}
+                          title="Remove selection"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="admin-bridge-slot-placeholder female-prompt">
+                        <span>🌸 Select a Female from Left Column</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Center Match Connector & Controls */}
+                  <div className="admin-bridge-center">
+                    {selectedFemale && selectedMale ? (
+                      <div className="admin-bridge-active-panel">
+                        <div className="admin-bridge-score-ring">
+                          <span className="admin-bridge-score-number">
+                            {liveMatchMetrics?.score || 85}%
+                          </span>
+                          <span className="admin-bridge-score-sub">Compatibility</span>
+                        </div>
+
+                        {liveMatchMetrics?.sharedTags?.length > 0 && (
+                          <div className="admin-bridge-shared-tags">
+                            ✨ Shared: {liveMatchMetrics.sharedTags.join(", ")}
+                          </div>
+                        )}
+
+                        <div className="admin-bridge-options">
+                          <label className="admin-bridge-checkbox-label">
+                            <input
+                              type="checkbox"
+                              checked={studioInstantReveal}
+                              onChange={(e) => setStudioInstantReveal(e.target.checked)}
+                            />
+                            <span>Instant Reveal (Real names unlocked)</span>
+                          </label>
+
+                          <input
+                            type="text"
+                            placeholder="Optional pair note / festival headline..."
+                            value={studioCustomHeadline}
+                            onChange={(e) => setStudioCustomHeadline(e.target.value)}
+                            className="admin-bridge-headline-input"
+                          />
+                        </div>
+
+                        <button
+                          type="button"
+                          className="admin-btn-studio-pair-submit"
+                          disabled={actionInProgress}
+                          onClick={handleExecuteStudioPair}
+                        >
+                          {actionInProgress ? (
+                            "Pairing in Database..."
+                          ) : (
+                            `⚡ Match ${selectedFemale.fullName.split(" ")[0]} 🌸 & ${selectedMale.fullName.split(" ")[0]} ⚡ for Dandiya`
+                          )}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="admin-bridge-instruction">
+                        <span className="admin-bridge-zap-icon">⚡</span>
+                        <p>
+                          {selectedFemale
+                            ? "👉 Now select a Male partner on the right to review compatibility and activate 1-on-1 chat."
+                            : "👈 Select a Female partner on the left to review compatibility and activate 1-on-1 chat."}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Male Slot */}
+                  <div className="admin-bridge-slot">
+                    {selectedMale ? (
+                      <div className="admin-bridge-user-selected male-border">
+                        <div className="admin-bridge-avatar-wrap">
+                          {selectedMale.profilePhoto ? (
+                            <img src={selectedMale.profilePhoto} alt="" className="admin-bridge-avatar" />
+                          ) : (
+                            <div className="admin-bridge-avatar-empty male">
+                              {selectedMale.fullName?.[0] || "M"}
+                            </div>
+                          )}
+                        </div>
+                        <div className="admin-bridge-user-info">
+                          <span className="admin-bridge-role-label">⚡ Selected Male</span>
+                          <strong>{selectedMale.fullName}</strong>
+                          <span>{selectedMale.course || "Campus"}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="admin-bridge-slot-remove"
+                          onClick={() => setSelectedMale(null)}
+                          title="Remove selection"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="admin-bridge-slot-placeholder male-prompt">
+                        <span>⚡ Select a Male from Right Column</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ==========================================================
+            MODE 2: MATCH REGISTRY & AUDIT LIST
+            ========================================================== */}
+        {viewMode === "REGISTRY" && (
+          <>
+            {/* 4 Stats Cards */}
+            <div className="admin-match-stats-grid">
           <div className="admin-stat-card gold">
             <span className="admin-stat-label">💃 Mutually Paired Dandiya Profiles</span>
             <strong className="admin-stat-val">{mutualPairsCount}</strong>
@@ -808,6 +1511,8 @@ function AdminMatches() {
               );
             })}
           </div>
+        )}
+          </>
         )}
       </div>
 

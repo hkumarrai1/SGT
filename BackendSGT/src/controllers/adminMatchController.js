@@ -10,6 +10,7 @@ import {
   listStudentsForManualPairingAdmin,
   getCandidatePartnersAdmin,
   createManualPairAdmin,
+  getDualGenderPoolAdmin,
 } from "../services/adminMatchService.js";
 
 export async function listMatches(req, res) {
@@ -19,6 +20,11 @@ export async function listMatches(req, res) {
     success: true,
     matches,
   });
+}
+
+export async function getDualGenderPool(req, res) {
+  const result = await getDualGenderPoolAdmin();
+  return res.json(result);
 }
 
 export async function listStudentsForManualPair(req, res) {

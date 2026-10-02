@@ -19,6 +19,7 @@ import {
   blockUserByEmail,
   createManualPair,
   getCandidatePartners,
+  getDualGenderPool,
   listMatches,
   listStudentsForManualPair,
   listSuspendedUsers,
@@ -63,6 +64,7 @@ router.patch(
 
 // Dandiya Match & Pair Management Endpoints
 router.get("/matches", requireAdmin, asyncHandler(listMatches));
+router.get("/matches/dual-pool", requireAdmin, asyncHandler(getDualGenderPool));
 router.get(
   "/matches/students",
   requireAdmin,

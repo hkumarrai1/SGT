@@ -624,3 +624,97 @@ export async function createManualPairAdmin({
     },
   };
 }
+
+/**
+ * Optimized endpoint to fetch all verified/active female and male students across the app
+ * Returns structured datasets for high-speed side-by-side split matching
+ */
+export async function getDualGenderPoolAdmin() {
+  const [profiles, questionnaires, activeMatches, users] = await Promise.all([
+    Profile.find({})
+      .select(
+        "userId institutionId fullName gender course academicYear studentId profilePhoto verificationStatus questionnaireStatus paymentStatus activePlan anonymousAlias revealedWithUserId createdAt",
+      )
+      .populate("institutionId", "name shortName city")
+      .lean(),
+    QuestionnaireResponse.find({})
+      .select("userId tags features answers completedAt")
+      .lean(),
+    Match.find({ status: "ACTIVE" })
+      .select("user1Id user2Id status isRevealed matchedAt")
+      .lean(),
+    User.find({})
+      .select("_id email isBlocked blockReason")
+      .lean(),
+  ]);
+
+  const userMap = new Map();
+  users.forEach((u) => userMap.set(String(u._id), u));
+
+  const questMap = new Map();
+  questionnaires.forEach((q) => questMap.set(String(q.userId), q));
+
+  const activeMatchMap = new Map();
+  activeMatches.forEach((m) => {
+    if (m.user1Id) activeMatchMap.set(String(m.user1Id), m);
+    if (m.user2Id) activeMatchMap.set(String(m.user2Id), m);
+  });
+
+  const females = [];
+  const males = [];
+
+  for (const p of profiles) {
+    if (!p.userId) continue;
+    const userDoc = userMap.get(String(p.userId));
+    if (!userDoc || userDoc.isBlocked) continue;
+
+    const quest = questMap.get(String(p.userId));
+    const activeMatch = activeMatchMap.get(String(p.userId));
+
+    const studentData = {
+      _id: p._id,
+      userId: userDoc._id,
+      email: userDoc.email,
+      fullName: p.fullName || "Student",
+      anonymousAlias: p.anonymousAlias || "Campus_Dancer",
+      gender: p.gender || "prefer-not-to-say",
+      studentId: p.studentId || "N/A",
+      course: p.course || "Campus",
+      academicYear: p.academicYear ? `Year ${p.academicYear}` : "",
+      collegeName: p.institutionId?.name || "University Campus",
+      collegeShort: p.institutionId?.shortName || p.institutionId?.name || "Campus",
+      profilePhoto: p.profilePhoto?.secureUrl || p.profilePhoto?.url || null,
+      verificationStatus: p.verificationStatus || "NOT_SUBMITTED",
+      paymentStatus: p.paymentStatus || "UNPAID",
+      activePlan: p.activePlan || "none",
+      tags: quest?.tags || [],
+      personalityFeatures: quest?.features || null,
+      hasCompletedQuest: Boolean(quest),
+      hasActiveMatch: Boolean(activeMatch),
+      activeMatchId: activeMatch?._id || null,
+      isRevealedWithPartner: Boolean(p.revealedWithUserId || activeMatch?.isRevealed),
+      createdAt: p.createdAt,
+    };
+
+    if (p.gender === "female") {
+      females.push(studentData);
+    } else if (p.gender === "male") {
+      males.push(studentData);
+    }
+  }
+
+  females.sort((a, b) => a.fullName.localeCompare(b.fullName));
+  males.sort((a, b) => a.fullName.localeCompare(b.fullName));
+
+  return {
+    success: true,
+    counts: {
+      females: females.length,
+      males: males.length,
+      unmatchedFemales: females.filter((f) => !f.hasActiveMatch).length,
+      unmatchedMales: males.filter((m) => !m.hasActiveMatch).length,
+    },
+    females,
+    males,
+  };
+}
