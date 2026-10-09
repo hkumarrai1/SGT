@@ -43,16 +43,15 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-Add SambaNova credentials to `.env` for questionnaire profile tagging:
+Add GroqCloud credentials to `.env` for questionnaire profile tagging and compatibility synthesis:
 
 ```env
-SAMBANOVA_API_KEY=YOUR_SAMBANOVA_API_KEY
-SAMBANOVA_BASE_URL=https://api.sambanova.ai/v1
-SAMBANOVA_MODEL=DeepSeek-V3.1
+GROQ_API_KEY=YOUR_GROQ_API_KEY
+GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
-Keep SambaNova credentials only in the backend environment. Do not create a
-`VITE_SAMBANOVA_API_KEY`, because Vite variables are exposed to the browser.
+Keep Groq credentials only in the backend environment. Do not create a
+`VITE_GROQ_API_KEY`, because Vite variables are exposed to the browser.
 
 Profile photos are held in memory during validation and uploaded to Cloudinary under `SGT/profile-photos`. No local `uploads` directory or image binary is created. Accepted formats are JPG, PNG, and WebP, with a 5 MB limit and minimum dimensions of 200x200 pixels.
 

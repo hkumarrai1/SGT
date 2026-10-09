@@ -49,7 +49,7 @@ const questionnaireResponseSchema = new mongoose.Schema(
         message: "A maximum of 5 tags can be saved.",
       },
     },
-    aiProvider: { type: String, default: "Gemini" },
+    aiProvider: { type: String, default: "Groq" },
     aiModel: { type: String, trim: true },
     completedAt: { type: Date, default: Date.now },
   },

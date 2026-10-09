@@ -1,5 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
 import { allowedTagSet, tagLibrary } from "../data/tagLibrary.js";
+import { executeGroqChatCompletion, createServiceError } from "./groqClient.js";
 import { env } from "../config/env.js";
 
 const systemPrompt = `You are the SGT Profile Tagging Engine.
@@ -18,7 +18,7 @@ IMPORTANT RULES:
 6. Do not calculate compatibility.
 7. Do not estimate whether the user will like another person.
 8. Do not return explanations unless explicitly requested.
-9. Return valid JSON only.
+9. Return valid JSON only adhering strictly to the schema.
 10. If the data is ambiguous, select the most reasonable tags from the allowed library.
 
 Allowed tags:
@@ -75,70 +75,62 @@ Return exactly this JSON structure:
   "tags": ["Tag 1", "Tag 2", "Tag 3"]
 }`;
 
-function serviceError(message, statusCode = 502) {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  return error;
-}
-
 function parseTagResponse(content) {
   try {
-    const json = content
+    const cleanJson = content
       .trim()
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")
       .replace(/```$/i, "")
       .trim();
-    const parsed = JSON.parse(json);
+
+    const parsed = JSON.parse(cleanJson);
     if (!parsed || !Array.isArray(parsed.tags)) {
-      throw new Error("Missing tags array.");
+      throw new Error("Missing tags array in response.");
     }
 
-    const tags = [...new Set(parsed.tags)].filter((tag) =>
-      allowedTagSet.has(tag),
-    );
+    const tags = [...new Set(parsed.tags)].filter((tag) => allowedTagSet.has(tag));
 
-    if (!tags.length || tags.length > 5 || tags.length !== parsed.tags.length) {
-      throw new Error("Tags are outside the approved library.");
+    if (!tags.length) {
+      throw new Error("No valid tags from the approved library were returned.");
+    }
+
+    if (tags.length > 5) {
+      // Safely clamp to 5 approved tags
+      return tags.slice(0, 5);
     }
 
     return tags;
-  } catch {
-    throw serviceError("AI tagging returned an invalid tag response.");
+  } catch (err) {
+    throw createServiceError(
+      `AI tagging returned an invalid tag response: ${err.message}`,
+      502,
+      "INVALID_TAG_RESPONSE"
+    );
   }
 }
 
 export async function generateProfileTags(features) {
-  if (!env.geminiApiKey || env.geminiApiKey === "YOUR_GEMINI_API_KEY") {
-    throw serviceError("Gemini API key is not configured.", 503);
+  if (!features || typeof features !== "object") {
+    throw createServiceError("Valid questionnaire features are required for AI tagging.", 400);
   }
 
-  const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
+  const userMessage = JSON.stringify({
+    allowedTags: tagLibrary,
+    features,
+    instruction: "Select up to 5 allowed tags for this SGT profile. Do not calculate compatibility.",
+  });
 
-  try {
-    const response = await ai.models.generateContent({
-      model: env.geminiModel || "gemini-2.5-flash",
-      contents: JSON.stringify({
-        allowedTags: tagLibrary,
-        features,
-        instruction:
-          "Select up to 5 allowed tags for this SGT profile. Do not calculate compatibility.",
-      }),
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: "application/json",
-        temperature: 0.1,
-      },
-    });
+  const responseContent = await executeGroqChatCompletion({
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userMessage },
+    ],
+    responseFormat: { type: "json_object" },
+    temperature: 0.1,
+    maxTokens: 500,
+    model: env.groqModel || "llama-3.3-70b-versatile",
+  });
 
-    const content = response?.text;
-    if (!content) {
-      throw serviceError("AI tagging returned an empty response.");
-    }
-
-    return parseTagResponse(content);
-  } catch (error) {
-    if (error.statusCode) throw error;
-    throw serviceError(error.message || "AI tagging request failed.");
-  }
+  return parseTagResponse(responseContent);
 }

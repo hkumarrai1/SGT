@@ -1151,7 +1151,7 @@ function Dashboard() {
                 </div>
                 <div className={`dashboard-scanner-step ${scannerStep >= 2 ? "is-active" : ""}`}>
                   <span>{scannerStep >= 2 ? "✦" : "○"}</span>
-                  <span>Gemini AI evaluating Q9 &amp; Q10 conversational synergy...</span>
+                  <span>AI Matchmaking Engine evaluating Q9 &amp; Q10 conversational synergy...</span>
                 </div>
               </div>
             </div>

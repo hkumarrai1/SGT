@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { executeGroqChatCompletion } from "./groqClient.js";
 import { env } from "../config/env.js";
 
 const systemPrompt = `You are the SGT Compatibility Synthesis Engine.
@@ -47,10 +47,9 @@ export async function synthesizeCompatibility(targetUser, candidates) {
     return null;
   }
 
-  // If only 1 candidate or Gemini key not available, prepare deterministic synthesis
   const primaryFallback = buildDeterministicFallback(targetUser, candidates[0]);
 
-  if (!env.geminiApiKey || env.geminiApiKey === "YOUR_GEMINI_API_KEY") {
+  if (!env.groqApiKey || env.groqApiKey.trim() === "" || env.groqApiKey === "YOUR_GROQ_API_KEY") {
     return primaryFallback;
   }
 
@@ -74,27 +73,25 @@ export async function synthesizeCompatibility(targetUser, candidates) {
   };
 
   try {
-    const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
-
-    const response = await ai.models.generateContent({
-      model: env.geminiModel || "gemini-2.5-flash",
-      contents: JSON.stringify({
-        primaryUser: userPayload,
-        shortlistCandidates: candidatePayload,
-        instruction:
-          "Evaluate Q9 & Q10 synergy and overall Dandiya vibe. Select the single best candidate from the shortlist and synthesize their connection.",
-      }),
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: "application/json",
-        temperature: 0.2,
-      },
+    const userMessage = JSON.stringify({
+      primaryUser: userPayload,
+      shortlistCandidates: candidatePayload,
+      instruction:
+        "Evaluate Q9 & Q10 synergy and overall Dandiya vibe. Select the single best candidate from the shortlist and synthesize their connection.",
     });
 
-    const content = response?.text;
-    if (!content) return primaryFallback;
+    const responseContent = await executeGroqChatCompletion({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ],
+      responseFormat: { type: "json_object" },
+      temperature: 0.2,
+      maxTokens: 800,
+      model: env.groqModel || "llama-3.3-70b-versatile",
+    });
 
-    const cleaned = content
+    const cleaned = responseContent
       .trim()
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")
@@ -103,9 +100,9 @@ export async function synthesizeCompatibility(targetUser, candidates) {
 
     const parsed = JSON.parse(cleaned);
 
-    // Validate that the returned ID is in the candidate pool
+    // Validate that the returned candidate ID exists in candidate pool
     const validCandidate = candidates.find(
-      (c) => c.userId.toString() === parsed.selectedCandidateId,
+      (c) => c.userId.toString() === String(parsed.selectedCandidateId || "")
     );
 
     if (!validCandidate) {
@@ -114,7 +111,7 @@ export async function synthesizeCompatibility(targetUser, candidates) {
 
     const synthesisScore = Math.min(
       99,
-      Math.max(70, Number(parsed.synthesisScore) || primaryFallback.synthesisScore),
+      Math.max(70, Number(parsed.synthesisScore) || primaryFallback.synthesisScore)
     );
 
     return {
@@ -122,15 +119,15 @@ export async function synthesizeCompatibility(targetUser, candidates) {
       synthesisScore,
       matchHeadline: String(parsed.matchHeadline || primaryFallback.matchHeadline).slice(0, 100),
       connectionNarrative: String(
-        parsed.connectionNarrative || primaryFallback.connectionNarrative,
+        parsed.connectionNarrative || primaryFallback.connectionNarrative
       ).slice(0, 350),
       sharedVibe: String(parsed.sharedVibe || primaryFallback.sharedVibe).slice(0, 80),
       icebreakerPrompt: String(
-        parsed.icebreakerPrompt || primaryFallback.icebreakerPrompt,
+        parsed.icebreakerPrompt || primaryFallback.icebreakerPrompt
       ).slice(0, 150),
     };
   } catch (error) {
-    console.warn("Gemini compatibility synthesis fallback engaged:", error.message);
+    console.warn("Groq compatibility synthesis fallback engaged:", error.message);
     return primaryFallback;
   }
 }

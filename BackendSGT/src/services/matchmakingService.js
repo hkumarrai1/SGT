@@ -4,7 +4,7 @@ import Profile from "../models/Profile.js";
 import QuestionnaireResponse from "../models/QuestionnaireResponse.js";
 import User from "../models/User.js";
 import VerificationApplication from "../models/VerificationApplication.js";
-import { synthesizeCompatibility } from "./geminiMatchSynthesisService.js";
+import { synthesizeCompatibility } from "./groqMatchSynthesisService.js";
 
 const COOLDOWN_SECONDS = 60;
 
@@ -337,10 +337,10 @@ export async function findOrGenerateMatch(userId) {
   // Sort candidates by deterministic score descending
   scoredCandidates.sort((a, b) => b.deterministicScore - a.deterministicScore);
 
-  // Take the TOP 5 candidates for Gemini evaluation
+  // Take the TOP 5 candidates for Groq AI evaluation
   const top5Candidates = scoredCandidates.slice(0, 5);
 
-  // 6. Gemini Compatibility Synthesis (Refining Shortlist based on Q9 & Q10)
+  // 6. Groq Compatibility Synthesis (Refining Shortlist based on Q9 & Q10)
   session.status = "AI_EVALUATING";
   await session.save();
 
@@ -377,7 +377,7 @@ export async function findOrGenerateMatch(userId) {
     top5Candidates.find((c) => c.userId.toString() === synthesisResult.selectedCandidateId) ||
     top5Candidates[0];
 
-  // Final blended score (40% deterministic math + 60% Gemini Q9/Q10 synthesis)
+  // Final blended score (40% deterministic math + 60% Groq Q9/Q10 synthesis)
   const finalScore = Math.min(
     99,
     Math.max(

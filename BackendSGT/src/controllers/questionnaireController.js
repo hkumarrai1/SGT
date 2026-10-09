@@ -7,12 +7,25 @@ import {
   extractQuestionnaireFeatures,
   validateQuestionnaireAnswers,
 } from "../services/questionnaireFeatureService.js";
-import { generateProfileTags } from "../services/geminiTaggingService.js";
+import { generateProfileTags } from "../services/groqTaggingService.js";
 
 function forbidden(message) {
   const error = new Error(message);
   error.statusCode = 403;
   return error;
+}
+
+function areAnswersIdentical(existingAnswers, newAnswers) {
+  if (!Array.isArray(existingAnswers) || !Array.isArray(newAnswers)) return false;
+  if (existingAnswers.length !== newAnswers.length) return false;
+  return newAnswers.every((ans, idx) => {
+    const existing = existingAnswers[idx];
+    return (
+      existing &&
+      existing.questionId === ans.questionId &&
+      existing.optionId === ans.optionId
+    );
+  });
 }
 
 async function requireQuestionnaireAccess(userId) {
@@ -41,7 +54,24 @@ export async function submitQuestionnaire(req, res) {
 
   const answers = validateQuestionnaireAnswers(req.body?.answers);
   const features = extractQuestionnaireFeatures(answers);
-  const tags = await generateProfileTags(features);
+
+  const existingResponse = await QuestionnaireResponse.findOne({
+    userId: req.user._id,
+  }).lean();
+
+  let tags;
+  // Reuse existing tags if answers are identical and tags already exist to avoid duplicate AI calls
+  if (
+    existingResponse &&
+    Array.isArray(existingResponse.tags) &&
+    existingResponse.tags.length > 0 &&
+    areAnswersIdentical(existingResponse.answers, answers)
+  ) {
+    tags = existingResponse.tags;
+  } else {
+    tags = await generateProfileTags(features);
+  }
+
   const now = new Date();
 
   await QuestionnaireResponse.findOneAndUpdate(
@@ -52,8 +82,8 @@ export async function submitQuestionnaire(req, res) {
         answers,
         features,
         tags,
-        aiProvider: "Gemini",
-        aiModel: env.geminiModel,
+        aiProvider: "Groq",
+        aiModel: env.groqModel || "llama-3.3-70b-versatile",
         completedAt: now,
       },
     },
