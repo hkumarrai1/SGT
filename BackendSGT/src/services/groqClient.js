@@ -12,6 +12,36 @@ export function createServiceError(message, statusCode = 502, code = "AI_SERVICE
   return error;
 }
 
+export function extractJsonFromText(text) {
+  if (!text || typeof text !== "string") return null;
+  const trimmed = text.trim();
+
+  // 1. Direct JSON parse
+  try {
+    return JSON.parse(trimmed);
+  } catch {}
+
+  // 2. Markdown code block extraction (```json ... ``` or ``` ...)
+  const fenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenceMatch && fenceMatch[1]) {
+    try {
+      return JSON.parse(fenceMatch[1].trim());
+    } catch {}
+  }
+
+  // 3. Substring between outermost { ... }
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    const jsonSubstring = trimmed.slice(firstBrace, lastBrace + 1);
+    try {
+      return JSON.parse(jsonSubstring);
+    } catch {}
+  }
+
+  return null;
+}
+
 function getGroqClient() {
   if (!env.groqApiKey || env.groqApiKey.trim() === "" || env.groqApiKey === "YOUR_GROQ_API_KEY") {
     throw createServiceError(
@@ -58,8 +88,15 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function isJsonValidationFailedError(err) {
+  if (!err) return false;
+  const message = (err.message || "").toLowerCase();
+  const code = (err.code || err.error?.code || "").toLowerCase();
+  return code === "json_validate_failed" || message.includes("json_validate_failed") || message.includes("failed to validate json");
+}
+
 /**
- * Robust Groq Chat Completion runner with timeouts, input validation, and exponential backoff
+ * Robust Groq Chat Completion runner with fallback for JSON mode, timeouts, input validation, and exponential backoff
  */
 export async function executeGroqChatCompletion({
   messages,
@@ -81,18 +118,24 @@ export async function executeGroqChatCompletion({
   }
 
   let lastError = null;
+  let useConstrainedFormat = Boolean(responseFormat);
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const completion = await client.chat.completions.create({
+      const params = {
         model,
         messages,
-        response_format: responseFormat,
         temperature,
         max_tokens: maxTokens,
-      });
+      };
 
+      if (useConstrainedFormat) {
+        params.response_format = responseFormat;
+      }
+
+      const completion = await client.chat.completions.create(params);
       const content = completion.choices?.[0]?.message?.content;
+
       if (!content || typeof content !== "string" || !content.trim()) {
         throw createServiceError("Groq returned an empty response.", 502, "EMPTY_RESPONSE");
       }
@@ -103,25 +146,23 @@ export async function executeGroqChatCompletion({
 
       const status = err.status || err.statusCode || err.response?.status;
 
-      // Do NOT retry permanent errors (e.g. 401 Auth, 403 Forbidden, 400 Bad Request)
+      // If Groq's constrained grammar enforcer fails, switch to standard completion and parse server-side
+      if (useConstrainedFormat && isJsonValidationFailedError(err)) {
+        console.warn("[GroqClient] json_validate_failed encountered. Retrying without constrained response_format...");
+        useConstrainedFormat = false;
+        continue;
+      }
+
+      // Do NOT retry permanent auth errors (401 Auth, 403 Forbidden)
       if (status === 401 || status === 403) {
         throw createServiceError(
-          "Groq API authentication failed. Please verify GROQ_API_KEY.",
+          "Groq API authentication failed. Please verify GROQ_API_KEY in server environment.",
           503,
           "GROQ_AUTH_FAILED"
         );
       }
 
-      if (status === 400) {
-        throw createServiceError(
-          err.message || "Invalid request sent to Groq AI service.",
-          400,
-          "BAD_REQUEST"
-        );
-      }
-
       if (attempt < MAX_RETRIES && isTransientError(err)) {
-        // Extract retry-after if available, or use exponential backoff + jitter
         let delayMs = 1000 * Math.pow(2, attempt - 1) + Math.random() * 500;
         const retryAfterHeader = err.headers?.get?.("retry-after") || err.response?.headers?.["retry-after"];
         if (retryAfterHeader) {
@@ -142,7 +183,7 @@ export async function executeGroqChatCompletion({
     }
   }
 
-  // If we reach here, all retries were exhausted or a non-retryable error occurred
+  // Parse error message cleanly for users
   const finalStatus = lastError?.status || lastError?.statusCode || 502;
   if (finalStatus === 429) {
     throw createServiceError(
@@ -152,8 +193,20 @@ export async function executeGroqChatCompletion({
     );
   }
 
+  // Clean up raw JSON error messages if any
+  let userFriendlyMsg = lastError?.message || "Groq AI request failed.";
+  try {
+    const rawMatch = userFriendlyMsg.match(/\{"error":\{.*\}\}/);
+    if (rawMatch) {
+      const parsedRaw = JSON.parse(rawMatch[0]);
+      if (parsedRaw.error?.message) {
+        userFriendlyMsg = parsedRaw.error.message;
+      }
+    }
+  } catch {}
+
   throw createServiceError(
-    lastError?.message || "Groq AI request failed after retries.",
+    `AI analysis failed: ${userFriendlyMsg}`,
     finalStatus >= 400 && finalStatus < 600 ? finalStatus : 502,
     "GROQ_REQUEST_FAILED"
   );

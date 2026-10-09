@@ -1,4 +1,4 @@
-import { executeGroqChatCompletion } from "./groqClient.js";
+import { executeGroqChatCompletion, extractJsonFromText } from "./groqClient.js";
 import { env } from "../config/env.js";
 
 const systemPrompt = `You are the SGT Compatibility Synthesis Engine.
@@ -73,12 +73,17 @@ export async function synthesizeCompatibility(targetUser, candidates) {
   };
 
   try {
-    const userMessage = JSON.stringify({
-      primaryUser: userPayload,
-      shortlistCandidates: candidatePayload,
-      instruction:
-        "Evaluate Q9 & Q10 synergy and overall Dandiya vibe. Select the single best candidate from the shortlist and synthesize their connection.",
-    });
+    const userMessage = `Evaluate candidate compatibility for Dandiya matchmaking and respond strictly in JSON format.
+
+PRIMARY USER:
+${JSON.stringify(userPayload, null, 2)}
+
+SHORTLIST CANDIDATES:
+${JSON.stringify(candidatePayload, null, 2)}
+
+INSTRUCTION:
+Select the single best candidate and synthesize their connection synergy.
+Respond with a valid JSON object matching the requested schema.`;
 
     const responseContent = await executeGroqChatCompletion({
       messages: [
@@ -91,14 +96,10 @@ export async function synthesizeCompatibility(targetUser, candidates) {
       model: env.groqModel || "llama-3.3-70b-versatile",
     });
 
-    const cleaned = responseContent
-      .trim()
-      .replace(/^```json\s*/i, "")
-      .replace(/^```\s*/i, "")
-      .replace(/```$/i, "")
-      .trim();
-
-    const parsed = JSON.parse(cleaned);
+    const parsed = extractJsonFromText(responseContent);
+    if (!parsed) {
+      return primaryFallback;
+    }
 
     // Validate that the returned candidate ID exists in candidate pool
     const validCandidate = candidates.find(
